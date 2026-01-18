@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bivalve, NJ — Tidal Flooding Dashboard</title>
+
+  <!-- Chart.js (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1a2e;
+      --panel2:#0c1628;
+      --text:#eaf0ff;
+      --muted:#a9b6d3;
+      --line:rgba(255,255,255,.08);
+      --good:#2dd4bf;
+      --minor:#fbbf24;
+      --moderate:#fb7185;
+      --major:#a78bfa;
+      --shadow: 0 20px 60px rgba(0,0,0,.35);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 20% -10%, rgba(34,211,238,.20), transparent 55%),
+                  radial-gradient(900px 500px at 90% 10%, rgba(167,139,250,.18), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+    }
+    a{color:inherit}
+    .wrap{
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 26px 18px 40px;
+    }
+    .hero{
+      display:flex;
+      gap:18px;
+      align-items:stretch;
+      margin-bottom:18px;
+    }
+    .heroCard{
+      flex: 1;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px 18px 16px;
+      position:relative;
+      overflow:hidden;
+    }
+    .heroCard:before{
+      content:"";
+      position:absolute; inset:-1px;
+      background: radial-gradient(700px 300px at 20% 0%, rgba(45,212,191,.14), transparent 55%),
+                  radial-gradient(500px 280px at 90% 20%, rgba(251,113,133,.10), transparent 60%);
+      pointer-events:none;
+    }
+    .heroInner{position:relative}
+    .kicker{
+      display:flex; gap:10px; align-items:center;
+      color:var(--muted);
+      font-weight:600;
+      letter-spacing:.2px;
+      font-size: 12.5px;
+      text-transform: uppercase;
+    }
+    .titleRow{
+      display:flex; flex-wrap:wrap; gap:10px; align-items:baseline; justify-content:space-between;
+      margin-top:10px;
+    }
+    h1{
+      margin:0;
+      font-size: 22px;
+      letter-spacing:.2px;
+    }
+    .sub{
+      color:var(--muted);
+      font-size: 13px;
+      margin-top:8px;
+      line-height:1.35;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;
+      border-radius: 999px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.18);
+      font-weight:700;
+      font-size: 12.5px;
+      white-space:nowrap;
+    }
+    .dot{width:9px;height:9px;border-radius:99px;background:var(--good);box-shadow:0 0 0 4px rgba(45,212,191,.15)}
+    .grid{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:18px;
+      margin-top: 18px;
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns:1fr}
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      overflow:hidden;
+    }
+    .cardHeader{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+      margin-bottom: 12px;
+    }
+    .card h2{
+      margin:0;
+      font-size: 14px;
+      letter-spacing:.2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .liveRow{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      margin-top: 10px;
+    }
+    @media (max-width: 560px){
+      .liveRow{grid-template-columns:1fr}
+    }
+    .metric{
+      background: rgba(0,0,0,.18);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+    }
+    .metricLabel{
+      color:var(--muted);
+      font-weight:700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing:.2px;
+      margin-bottom:8px;
+    }
+    .metricValue{
+      font-size: 28px;
+      font-weight: 850;
+      letter-spacing:.2px;
+      display:flex;
+      align-items:baseline;
+      gap:8px;
+    }
+    .unit{
+      font-size: 12px;
+      color:var(--muted);
+      font-weight: 700;
+    }
+    .mini{
+      margin-top:6px;
+      color:var(--muted);
+      font-size: 12.5px;
+      line-height:1.35;
+    }
+    .stages{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap:10px;
+      margin-top: 10px;
+    }
+    @media (max-width: 720px){
+      .stages{grid-template-columns:1fr}
+    }
+    .stage{
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.18);
+      padding: 12px;
+    }
+    .stageTop{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin-bottom: 8px;
+    }
+    .stageName{font-weight:900}
+    .badge{
+      font-weight:900;
+      font-size: 11px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      white-space:nowrap;
+    }
+    .range{color:var(--muted); font-weight:700; font-size: 12.5px}
+    .table{
+      width:100%;
+      border-collapse: collapse;
+      overflow:hidden;
+      border-radius: 14px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.18);
+    }
+    .table th, .table td{
+      padding: 10px 10px;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+    }
+    .table th{
+      text-align:left;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing:.2px;
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .table tr:last-child td{border-bottom:none}
+    .muted{color:var(--muted)}
+    .footerNote{
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height:1.35;
+    }
+    .statusLine{
+      display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12.5px;
+    }
+    .statusLine code{
+      color:var(--text);
+      background: rgba(0,0,0,.22);
+      border:1px solid var(--line);
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <div class="hero">
+      <div class="heroCard">
+        <div class="heroInner">
+          <div class="kicker">USGS-01412150 · Maurice River at Bivalve, NJ</div>
+          <div class="titleRow">
+            <h1>Bivalve Tidal Flooding Dashboard</h1>
+            <div class="pill" id="liveStagePill"><span class="dot" id="liveDot"></span><span id="liveStageText">Loading stage…</span></div>
+          </div>
+          <div class="sub">
+            Live “current water elevation” and “monthly maximum” are pulled from USGS time-series (gage height / stage).
+            Flood classes and historical tallies are based on your thresholds and counts.
+          </div>
+
+          <div class="liveRow">
+            <div class="metric">
+              <div class="metricLabel">Current water elevation</div>
+              <div class="metricValue"><span id="currentFeet">—</span><span class="unit">ft</span></div>
+              <div class="mini" id="currentMeta">Updated: —</div>
+            </div>
+
+            <div class="metric">
+              <div class="metricLabel">Monthly maximum (this month)</div>
+              <div class="metricValue"><span id="monthMaxFeet">—</span><span class="unit">ft</span></div>
+              <div class="mini" id="monthMaxMeta">Window: —</div>
+            </div>
+          </div>
+
+          <div class="statusLine">
+            Data source:
+            <code id="ivEndpoint">—</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+
+      <!-- LEFT: Flood stages + chart -->
+      <div class="card">
+        <div class="cardHeader">
+          <h2>Flood stages (ft)</h2>
+        </div>
+
+        <div class="stages">
+          <div class="stage">
+            <div class="stageTop">
+              <div class="stageName">Minor</div>
+              <div class="badge" style="color:var(--minor)">4.19–5.19</div>
+            </div>
+            <div class="range">Nuisance / low-impact flooding threshold band</div>
+          </div>
+
+          <div class="stage">
+            <div class="stageTop">
+              <div class="stageName">Moderate</div>
+              <div class="badge" style="color:var(--moderate)">5.19–6.19</div>
+            </div>
+            <div class="range">More disruptive flooding band</div>
+          </div>
+
+          <div class="stage">
+            <div class="stageTop">
+              <div class="stageName">Major</div>
+              <div class="badge" style="color:var(--major)">≥ 6.19</div>
+            </div>
+            <div class="range">High-impact / rare extreme band</div>
+          </div>
+        </div>
+
+        <div style="height:16px"></div>
+
+        <div class="cardHeader">
+          <h2>Annual tidal flooding counts (2000–2025)</h2>
+        </div>
+        <canvas id="annualChart" height="150"></canvas>
+
+        <div class="footerNote">
+          Note: <b>sparse data</b> in <b>2000</b> and <b>2001</b>.
+        </div>
+      </div>
+
+      <!-- RIGHT: Top 10 table -->
+      <div class="card">
+        <div class="cardHeader">
+          <h2>Top ten highest tides</h2>
+        </div>
+
+        <table class="table" aria-label="Top ten highest tides">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Height (ft)</th>
+              <th>Context</th>
+            </tr>
+          </thead>
+          <tbody id="topTenBody"></tbody>
+        </table>
+
+        <div class="footerNote">
+          Heights provided by you (curated extremes list). You can swap “Context” labels anytime.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+  // ==========================
+  // CONFIG (your station + thresholds)
+  // ==========================
+  const SITE = "01412150";     // USGS-01412150
+  const PARAM = "00065";       // gage height / stage (ft)
+  const TZ = "America/New_York";
+
+  const THRESH = {
+    minorLow: 4.19,
+    moderateLow: 5.19,
+    majorLow: 6.19
+  };
+
+  // Your Top 10 (date, feet)
+  const TOP_TEN = [
+    {date:"10-29-2012", ft:7.03, note:"Hurricane Sandy"},
+    {date:"11-25-1950", ft:6.60, note:"Historic coastal storm"},
+    {date:"04-16-2011", ft:5.80, note:"Coastal event"},
+    {date:"08-04-2020", ft:5.67, note:"Tropical / surge"},
+    {date:"08-27-2011", ft:5.60, note:"Hurricane Irene era"},
+    {date:"01-23-2016", ft:5.58, note:"Winter storm Jonas"},
+    {date:"04-19-2022", ft:5.50, note:"Coastal event"},
+    {date:"08-21-2025", ft:5.49, note:"Coastal event"},
+    {date:"10-27-2018", ft:5.41, note:"Coastal event"},
+    {date:"03-09-2024", ft:5.39, note:"Coastal event"}
+  ];
+
+  // Annual counts you provided (2000–2025)
+  const YEARS = Array.from({length: 26}, (_,i)=>2000+i);
+
+  const minorCounts = [0,0,1,20,13,25,19,16,20,29,25,30,23,20,23,11,23,34,40,44,35,31,14,41,65,38];
+  const moderateCounts = [0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,2,0,2,0,1,0,1,0,3,1];
+
+  // If you ever add major counts later, drop them here. For now: zeros.
+  const majorCounts = YEARS.map(_=>0);
+
+  // ==========================
+  // RENDER: Top 10 table
+  // ==========================
+  const topTenBody = document.getElementById("topTenBody");
+  TOP_TEN.forEach(r=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${r.date}</td>
+      <td><b>${r.ft.toFixed(2)}</b></td>
+      <td class="muted">${r.note}</td>
+    `;
+    topTenBody.appendChild(tr);
+  });
+
+  // ==========================
+  // CHART: Annual counts stacked bars
+  // ==========================
+  const ctx = document.getElementById("annualChart");
+  const annualChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: YEARS,
+      datasets: [
+        { label: "Minor", data: minorCounts, stack: "flood", borderWidth: 0 },
+        { label: "Moderate", data: moderateCounts, stack: "flood", borderWidth: 0 },
+        { label: "Major", data: majorCounts, stack: "flood", borderWidth: 0 }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: "rgba(234,240,255,.85)", font: { weight: "700" } } },
+        tooltip: { enabled: true }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          ticks: { color: "rgba(169,182,211,.9)", maxRotation: 0, autoSkip: true },
+          grid: { color: "rgba(255,255,255,.06)" }
+        },
+        y: {
+          stacked: true,
+          ticks: { color: "rgba(169,182,211,.9)" },
+          grid: { color: "rgba(255,255,255,.06)" }
+        }
+      }
+    }
+  });
+
+  // Give datasets nice colors (without relying on theme)
+  annualChart.data.datasets[0].backgroundColor = "rgba(251,191,36,.85)"; // minor
+  annualChart.data.datasets[1].backgroundColor = "rgba(251,113,133,.80)"; // moderate
+  annualChart.data.datasets[2].backgroundColor = "rgba(167,139,250,.80)"; // major
+  annualChart.update();
+
+  // ==========================
+  // LIVE DATA: USGS IV (current + monthly max)
+  // ==========================
+  const currentFeetEl = document.getElementById("currentFeet");
+  const currentMetaEl = document.getElementById("currentMeta");
+  const monthMaxFeetEl = document.getElementById("monthMaxFeet");
+  const monthMaxMetaEl = document.getElementById("monthMaxMeta");
+  const liveStageText = document.getElementById("liveStageText");
+  const liveDot = document.getElementById("liveDot");
+  const ivEndpointEl = document.getElementById("ivEndpoint");
+
+  function classifyStage(ft){
+    if (ft >= THRESH.majorLow) return {label:"MAJOR FLOODING", color:"var(--major)", glow:"rgba(167,139,250,.22)"};
+    if (ft >= THRESH.moderateLow) return {label:"MODERATE FLOODING", color:"var(--moderate)", glow:"rgba(251,113,133,.22)"};
+    if (ft >= THRESH.minorLow) return {label:"MINOR FLOODING", color:"var(--minor)", glow:"rgba(251,191,36,.22)"};
+    return {label:"BELOW FLOOD STAGE", color:"var(--good)", glow:"rgba(45,212,191,.18)"};
+  }
+
+  function fmtNY(iso){
+    try{
+      const d = new Date(iso);
+      return new Intl.DateTimeFormat("en-US", {
+        timeZone: TZ, year:"numeric", month:"short", day:"2-digit",
+        hour:"2-digit", minute:"2-digit"
+      }).format(d);
+    }catch(e){ return iso; }
+  }
+
+  function monthWindowISO(){
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+    return { startISO: start.toISOString(), endISO: now.toISOString() };
+  }
+
+  async function fetchIV({startISO=null, endISO=null}={}){
+    let url = new URL("https://waterservices.usgs.gov/nwis/iv/");
+    url.searchParams.set("format","json");
+    url.searchParams.set("sites", SITE);
+    url.searchParams.set("parameterCd", PARAM);
+    url.searchParams.set("siteStatus","all");
+    if (startISO) url.searchParams.set("startDT", startISO);
+    if (endISO) url.searchParams.set("endDT", endISO);
+    ivEndpointEl.textContent = url.toString();
+    const res = await fetch(url.toString(), {cache:"no-store"});
+    if(!res.ok) throw new Error("USGS IV request failed: " + res.status);
+    return await res.json();
+  }
+
+  function extractSeries(json){
+    // USGS IV JSON structure: timeSeries[0].values[0].value[] holds points
+    const ts = json?.value?.timeSeries?.[0];
+    const vals = ts?.values?.[0]?.value || [];
+    return vals.map(v=>({
+      t: v.dateTime,
+      ft: Number(v.value)
+    })).filter(p=>Number.isFinite(p.ft));
+  }
+
+  async function updateLive(){
+    // Current = last point from IV
+    const json = await fetchIV();
+    const series = extractSeries(json);
+    if(series.length === 0) throw new Error("No IV data returned.");
+
+    const last = series[series.length - 1];
+    currentFeetEl.textContent = last.ft.toFixed(2);
+    currentMetaEl.textContent = "Updated: " + fmtNY(last.t);
+
+    const cls = classifyStage(last.ft);
+    liveStageText.textContent = cls.label;
+    liveDot.style.background = cls.color;
+    liveDot.style.boxShadow = `0 0 0 4px ${cls.glow}`;
+
+    // Monthly max: pull from start of month to now, compute max
+    const win = monthWindowISO();
+    const jsonM = await fetchIV({startISO: win.startISO, endISO: win.endISO});
+    const seriesM = extractSeries(jsonM);
+    if(seriesM.length){
+      const max = seriesM.reduce((a,b)=> b.ft>a.ft?b:a, seriesM[0]);
+      monthMaxFeetEl.textContent = max.ft.toFixed(2);
+      monthMaxMetaEl.textContent = `Window: ${fmtNY(win.startISO)} → ${fmtNY(win.endISO)} (max @ ${fmtNY(max.t)})`;
+    }else{
+      monthMaxFeetEl.textContent = "—";
+      monthMaxMetaEl.textContent = "No data this month.";
+    }
+  }
+
+  async function boot(){
+    try{
+      await updateLive();
+    }catch(err){
+      console.error(err);
+      liveStageText.textContent = "LIVE DATA UNAVAILABLE";
+      currentMetaEl.textContent = "Could not load USGS live data.";
+      monthMaxMetaEl.textContent = "Could not load monthly window.";
+    }
+  }
+
+  boot();
+  // refresh every 5 minutes
+  setInterval(boot, 5 * 60 * 1000);
+</script>
+</body>
+</html>
