@@ -150,7 +150,7 @@
       margin-top: 10px;
     }
 
-    @media (max-width: 560px){
+    @media (max-width: 700px){
       .liveRow{grid-template-columns:1fr}
     }
 
@@ -193,16 +193,33 @@
       line-height:1.25;
     }
 
-    /* Flood stage tiles: ONLY the names + pills */
+    /* ===== Flood stage tiles =====
+       Fix: prevent "Major" from going off screen by:
+       - forcing a single row of 3 with equal columns,
+       - allowing horizontal scroll if viewport is too tight,
+       - ensuring each card has a sane min-width.
+    */
     .stages{
       display:grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: repeat(3, minmax(240px, 1fr));
       gap:10px;
       margin-top: 8px;
+      overflow-x: auto;              /* allows scroll instead of clipping */
+      padding-bottom: 2px;
+      -webkit-overflow-scrolling: touch;
     }
 
-    @media (max-width: 720px){
-      .stages{grid-template-columns:1fr}
+    /* Hide the scroll bar but keep scrolling */
+    .stages::-webkit-scrollbar{height:8px}
+    .stages::-webkit-scrollbar-track{background:transparent}
+    .stages::-webkit-scrollbar-thumb{background:rgba(255,255,255,.10); border-radius:999px}
+
+    /* On smaller screens, stack vertically */
+    @media (max-width: 760px){
+      .stages{
+        grid-template-columns: 1fr;
+        overflow-x: visible;
+      }
     }
 
     .stage{
@@ -215,12 +232,14 @@
       justify-content:space-between;
       gap:10px;
       min-height: 78px;
+      min-width: 240px;             /* key: prevents the 3rd card from collapsing/clipping */
     }
 
     .stageName{
       font-weight: 950;
       font-size: 22px;
       letter-spacing:.2px;
+      white-space: nowrap;
     }
 
     .badge{
@@ -231,6 +250,7 @@
       border: 1px solid var(--line);
       background: rgba(255,255,255,.06);
       white-space:nowrap;
+      flex: 0 0 auto;
     }
 
     .table{
@@ -332,7 +352,7 @@
           <h2>Flood stages (ft)</h2>
         </div>
 
-        <div class="stages">
+        <div class="stages" aria-label="Flood stages">
           <div class="stage">
             <div class="stageName">Minor</div>
             <div class="badge" style="color:var(--minor)">4.19–5.19</div>
@@ -359,8 +379,9 @@
           <canvas id="annualChart"></canvas>
         </div>
 
+        <!-- FIX: remove the "2026 is computed..." sentence entirely -->
         <div class="footerNote" id="chartNote">
-          Note: <b>sparse data</b> in <b>2000</b> and <b>2001</b>. Current year is computed from live gauge data.
+          Note: <b>sparse data</b> in <b>2000</b> and <b>2001</b>.
         </div>
       </div>
 
@@ -466,8 +487,6 @@
     return { y: Number(y), m: Number(m), d: Number(d) };
   }
 
-  // Start of today in NY, expressed as UTC ISO by constructing a Date from NY y/m/d and adding timezone via toISOString trick:
-  // We'll build a UTC ISO range by using Date.UTC and then let USGS interpret as UTC timestamps (it does).
   function startOfTodayNY_ISO(){
     const {y,m,d} = getNYParts(new Date());
     const utc = new Date(Date.UTC(y, m-1, d, 0, 0, 0));
@@ -528,16 +547,10 @@
 
   // ==========================
   // Flood-event counting for a year (episode-based)
-  // - Find "episodes" where ft >= minorLow
-  // - Track episode peak, then bin it:
-  //   peak >= majorLow => major
-  //   peak >= moderateLow => moderate
-  //   peak >= minorLow => minor
   // ==========================
   function countFloodEvents(points){
     if (!points.length) return {minor:0, moderate:0, major:0};
 
-    // ensure chronological
     points.sort((a,b)=> new Date(a.t) - new Date(b.t));
 
     let inEvent = false;
@@ -554,14 +567,12 @@
           peak = ft;
         }
       } else {
-        // in event
         if (ft > peak) peak = ft;
 
         if (ft < THRESH.minorLow){
-          // event ends; bin by peak
           if (peak >= THRESH.majorLow) major++;
           else if (peak >= THRESH.moderateLow) moderate++;
-          else if (peak >= THRESH.minorLow) minor++;
+          else minor++;
 
           inEvent = false;
           peak = -Infinity;
@@ -569,19 +580,16 @@
       }
     }
 
-    // If still inEvent at end, close it
     if (inEvent){
       if (peak >= THRESH.majorLow) major++;
       else if (peak >= THRESH.moderateLow) moderate++;
-      else if (peak >= THRESH.minorLow) minor++;
+      else minor++;
     }
 
     return {minor, moderate, major};
   }
 
   async function computeYearCountsLive(year){
-    // Pull data month-by-month to keep requests reasonable.
-    // We only do this for the CURRENT year (or any extra year beyond 2025).
     const all = [];
 
     for (let month = 0; month < 12; month++){
@@ -590,7 +598,6 @@
         ? new Date(Date.UTC(year+1, 0, 1, 0, 0, 0))
         : new Date(Date.UTC(year, month+1, 1, 0, 0, 0));
 
-      // Don’t request future months for the current year
       const now = new Date();
       if (start > now) break;
 
@@ -616,24 +623,23 @@
   });
 
   // ==========================
-  // Chart: build base arrays (2000–2025 provided) + append current year if needed
+  // Chart: build arrays (2000–2025 provided) + extend to current year as 0s
   // ==========================
   const ny = getNYParts(new Date()).y;
-  const END_YEAR = Math.max(PROVIDED_END_YEAR, ny); // extend chart to current year if > 2025
+  const END_YEAR = Math.max(PROVIDED_END_YEAR, ny);
   const YEARS = Array.from({length: END_YEAR - START_YEAR + 1}, (_,i)=> START_YEAR + i);
 
-  // Fill with provided where available; for years beyond 2025, start as null and compute live
-  const minorCounts = YEARS.map((y, idx)=>{
+  const minorCounts = YEARS.map((y)=>{
     if (y <= PROVIDED_END_YEAR) return providedMinor[y - START_YEAR];
-    return null;
+    return 0;
   });
-  const moderateCounts = YEARS.map((y, idx)=>{
+  const moderateCounts = YEARS.map((y)=>{
     if (y <= PROVIDED_END_YEAR) return providedModerate[y - START_YEAR];
-    return null;
+    return 0;
   });
-  const majorCounts = YEARS.map((y, idx)=>{
+  const majorCounts = YEARS.map((y)=>{
     if (y <= PROVIDED_END_YEAR) return providedMajor[y - START_YEAR];
-    return null;
+    return 0;
   });
 
   const ctx = document.getElementById("annualChart");
@@ -708,7 +714,6 @@
   }
 
   async function updateLiveMetrics(){
-    // Current
     const seriesNow = await fetchWithFallback({});
     if(seriesNow.length === 0) throw new Error("No IV data returned.");
 
@@ -717,7 +722,6 @@
     currentMetaEl.textContent = "Updated: " + fmtNY(last.t);
     setStagePill(last.ft);
 
-    // Monthly max
     const mStart = startOfMonthNY_ISO();
     const mEnd = nowISO();
     const seriesMonth = await fetchWithFallback({startISO: mStart, endISO: mEnd});
@@ -730,7 +734,6 @@
       monthMaxMetaEl.textContent = "No data this month.";
     }
 
-    // Daily max/min (today)
     const dStart = startOfTodayNY_ISO();
     const dEnd = nowISO();
     const seriesDay = await fetchWithFallback({startISO: dStart, endISO: dEnd});
@@ -750,17 +753,12 @@
   }
 
   // ==========================
-  // Live annual floods for "present" year (computed from thresholds)
+  // Live annual floods for present year (quietly updates chart; NO extra footer text)
   // ==========================
   async function updatePresentYearFloodCounts(){
     const currentYear = getNYParts(new Date()).y;
-
-    // Only compute live for years beyond the provided dataset OR for the current year if it is within range
-    // (This lets “present” floods always be live.)
     const idx = YEARS.indexOf(currentYear);
     if (idx === -1) return;
-
-    chartNoteEl.innerHTML = `Note: <b>sparse data</b> in <b>2000</b> and <b>2001</b>. <b>${currentYear}</b> is computed from live gauge data using your flood thresholds.`;
 
     const counts = await computeYearCountsLive(currentYear);
 
