@@ -39,14 +39,14 @@
     .wrap{
       max-width: 1180px;
       margin: 0 auto;
-      padding: 22px 18px 26px; /* reduced bottom padding */
+      padding: 22px 18px 26px;
     }
 
     .hero{
       display:flex;
       gap:18px;
       align-items:stretch;
-      margin-bottom:14px; /* tighter */
+      margin-bottom:14px;
     }
 
     .heroCard{
@@ -55,7 +55,7 @@
       border: 1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 16px 16px 14px; /* tighter */
+      padding: 16px 16px 14px;
       position:relative;
       overflow:hidden;
     }
@@ -91,8 +91,6 @@
       letter-spacing:.2px;
     }
 
-    /* Removed the long explanatory paragraph entirely */
-
     .pill{
       display:inline-flex;
       align-items:center;
@@ -114,7 +112,7 @@
     .grid{
       display:grid;
       grid-template-columns: 1.1fr .9fr;
-      gap:14px; /* tighter */
+      gap:14px;
       margin-top: 14px;
     }
 
@@ -127,13 +125,13 @@
       border: 1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 14px; /* tighter */
+      padding: 14px;
       overflow:hidden;
     }
 
     .cardHeader{
       display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
-      margin-bottom: 10px; /* tighter */
+      margin-bottom: 10px;
     }
 
     .card h2{
@@ -147,7 +145,7 @@
     .liveRow{
       display:grid;
       grid-template-columns: 1fr 1fr;
-      gap:10px; /* tighter */
+      gap:10px;
       margin-top: 10px;
     }
 
@@ -193,6 +191,7 @@
       line-height:1.25;
     }
 
+    /* Flood stage tiles: ONLY the names + pills */
     .stages{
       display:grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -208,27 +207,29 @@
       border-radius: 14px;
       border: 1px solid var(--line);
       background: rgba(0,0,0,.18);
-      padding: 12px;
+      padding: 16px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      min-height: 78px;
     }
 
-    .stageTop{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      margin-bottom: 8px;
+    .stageName{
+      font-weight: 950;
+      font-size: 22px;
+      letter-spacing:.2px;
     }
-
-    .stageName{font-weight:900}
 
     .badge{
-      font-weight:900;
-      font-size: 11px;
-      padding: 6px 10px;
+      font-weight:950;
+      font-size: 13px;
+      padding: 10px 14px;
       border-radius: 999px;
       border: 1px solid var(--line);
       background: rgba(255,255,255,.06);
       white-space:nowrap;
     }
-
-    .range{color:var(--muted); font-weight:700; font-size: 12.5px}
 
     .table{
       width:100%;
@@ -265,9 +266,8 @@
       line-height:1.25;
     }
 
-    /* IMPORTANT: fixed chart height so the y-axis doesn't look gigantic */
     .chartWrap{
-      height: 260px;        /* adjust: 220–320 is usually perfect */
+      height: 260px;
       width: 100%;
       position: relative;
     }
@@ -319,27 +319,18 @@
 
         <div class="stages">
           <div class="stage">
-            <div class="stageTop">
-              <div class="stageName">Minor</div>
-              <div class="badge" style="color:var(--minor)">4.19–5.19</div>
-            </div>
-            <div class="range">Nuisance / low-impact flooding threshold band</div>
+            <div class="stageName">Minor</div>
+            <div class="badge" style="color:var(--minor)">4.19–5.19</div>
           </div>
 
           <div class="stage">
-            <div class="stageTop">
-              <div class="stageName">Moderate</div>
-              <div class="badge" style="color:var(--moderate)">5.19–6.19</div>
-            </div>
-            <div class="range">More disruptive flooding band</div>
+            <div class="stageName">Moderate</div>
+            <div class="badge" style="color:var(--moderate)">5.19–6.19</div>
           </div>
 
           <div class="stage">
-            <div class="stageTop">
-              <div class="stageName">Major</div>
-              <div class="badge" style="color:var(--major)">≥ 6.19</div>
-            </div>
-            <div class="range">High-impact / rare extreme band</div>
+            <div class="stageName">Major</div>
+            <div class="badge" style="color:var(--major)">≥ 6.19</div>
           </div>
         </div>
 
@@ -374,10 +365,7 @@
           </thead>
           <tbody id="topTenBody"></tbody>
         </table>
-
-        <div class="footerNote">
-          Heights provided by you (curated extremes list).
-        </div>
+        <!-- removed the "Heights provided by you..." note -->
       </div>
 
     </div>
@@ -387,9 +375,9 @@
   // ==========================
   // CONFIG
   // ==========================
-  const SITE = "01412150";          // USGS-01412150
-  const PRIMARY_PARAM = "72279";    // tidal elevation (NOS) for this station
-  const FALLBACK_PARAM = "00065";   // gage height fallback (some stations use this)
+  const SITE = "01412150";
+  const PRIMARY_PARAM = "72279";    // tidal elevation (NOS)
+  const FALLBACK_PARAM = "00065";   // fallback gage height
   const TZ = "America/New_York";
 
   const THRESH = {
@@ -412,11 +400,11 @@
     {date:"03-09-2024", ft:5.39, note:"Coastal event"}
   ];
 
-  // Annual counts you provided (2000–2025)
+  // Annual counts (2000–2025)
   const YEARS = Array.from({length: 26}, (_,i)=>2000+i);
   const minorCounts = [0,0,1,20,13,25,19,16,20,29,25,30,23,20,23,11,23,34,40,44,35,31,14,41,65,38];
   const moderateCounts = [0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,2,0,2,0,1,0,1,0,3,1];
-  const majorCounts = YEARS.map(_=>0); // placeholder for now
+  const majorCounts = YEARS.map(_=>0);
 
   // ==========================
   // DOM
@@ -429,7 +417,7 @@
   const liveDot = document.getElementById("liveDot");
 
   // ==========================
-  // RENDER: Top 10 table
+  // Top 10 table
   // ==========================
   const topTenBody = document.getElementById("topTenBody");
   TOP_TEN.forEach(r=>{
@@ -443,16 +431,13 @@
   });
 
   // ==========================
-  // CHART: Annual counts stacked bars (fixed height via .chartWrap)
+  // Chart
   // ==========================
   const ctx = document.getElementById("annualChart");
-
-  // Optional: if you want y-axis NOT to start at 0, set suggestedMin/Max.
-  // This makes the axis feel less "huge" visually.
   const suggestedMin = 0;
-  const suggestedMax = Math.max(...minorCounts) + 10; // dynamic top with padding
+  const suggestedMax = Math.max(...minorCounts) + 10;
 
-  const annualChart = new Chart(ctx, {
+  new Chart(ctx, {
     type: "bar",
     data: {
       labels: YEARS,
@@ -464,7 +449,7 @@
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false, // IMPORTANT when using fixed-height wrapper
+      maintainAspectRatio: false,
       layout: { padding: { top: 4, right: 6, bottom: 0, left: 6 } },
       plugins: {
         legend: {
@@ -473,8 +458,7 @@
             font: { weight: "800" },
             boxWidth: 18
           }
-        },
-        tooltip: { enabled: true }
+        }
       },
       scales: {
         x: {
@@ -483,7 +467,7 @@
             color: "rgba(169,182,211,.9)",
             maxRotation: 0,
             autoSkip: true,
-            maxTicksLimit: 8 // tighter, less clutter
+            maxTicksLimit: 8
           },
           grid: { color: "rgba(255,255,255,.06)" }
         },
@@ -493,7 +477,7 @@
           suggestedMax,
           ticks: {
             color: "rgba(169,182,211,.9)",
-            maxTicksLimit: 6 // fewer tick marks so it looks less “tall”
+            maxTicksLimit: 6
           },
           grid: { color: "rgba(255,255,255,.06)" }
         }
@@ -502,7 +486,7 @@
   });
 
   // ==========================
-  // LIVE DATA: USGS Water Services IV
+  // Live data
   // ==========================
   function classifyStage(ft){
     if (ft >= THRESH.majorLow) return {label:"MAJOR FLOODING", color:"var(--major)", glow:"rgba(167,139,250,.22)"};
@@ -543,7 +527,6 @@
   }
 
   function extractSeries(json){
-    // IV JSON: value.timeSeries[0].values[0].value[] holds points
     const ts = json?.value?.timeSeries?.[0];
     const vals = ts?.values?.[0]?.value || [];
     return vals.map(v=>({ t: v.dateTime, ft: Number(v.value) }))
@@ -551,7 +534,6 @@
   }
 
   async function fetchWithFallback(opts){
-    // Try tidal elevation first (72279), then fallback (00065)
     let json = await fetchIV({...opts, parameterCd: PRIMARY_PARAM});
     let series = extractSeries(json);
     if (series.length) return series;
@@ -562,7 +544,6 @@
   }
 
   async function updateLive(){
-    // Current = last point
     const series = await fetchWithFallback({});
     if(series.length === 0) throw new Error("No IV data returned.");
 
@@ -575,7 +556,6 @@
     liveDot.style.background = cls.color;
     liveDot.style.boxShadow = `0 0 0 4px ${cls.glow}`;
 
-    // Monthly max
     const win = monthWindowISO();
     const seriesM = await fetchWithFallback({startISO: win.startISO, endISO: win.endISO});
     if(seriesM.length){
