@@ -365,7 +365,6 @@
           </thead>
           <tbody id="topTenBody"></tbody>
         </table>
-        <!-- removed the "Heights provided by you..." note -->
       </div>
 
     </div>
@@ -386,18 +385,21 @@
     majorLow: 6.19
   };
 
-  // Your Top 10 (date, feet)
+  // Top 10 highest tides with updated contexts:
+  // - 08-27-2011 => Tropical Storm Irene
+  // - 08-04-2020 => Tropical Storm Isaias
+  // - all other "Coastal event" => "Coastal storm"
   const TOP_TEN = [
     {date:"10-29-2012", ft:7.03, note:"Hurricane Sandy"},
     {date:"11-25-1950", ft:6.60, note:"Historic coastal storm"},
-    {date:"04-16-2011", ft:5.80, note:"Coastal event"},
-    {date:"08-04-2020", ft:5.67, note:"Tropical / surge"},
-    {date:"08-27-2011", ft:5.60, note:"Hurricane Irene era"},
+    {date:"04-16-2011", ft:5.80, note:"Coastal storm"},
+    {date:"08-04-2020", ft:5.67, note:"Tropical Storm Isaias"},
+    {date:"08-27-2011", ft:5.60, note:"Tropical Storm Irene"},
     {date:"01-23-2016", ft:5.58, note:"Winter storm Jonas"},
-    {date:"04-19-2022", ft:5.50, note:"Coastal event"},
-    {date:"08-21-2025", ft:5.49, note:"Coastal event"},
-    {date:"10-27-2018", ft:5.41, note:"Coastal event"},
-    {date:"03-09-2024", ft:5.39, note:"Coastal event"}
+    {date:"04-19-2022", ft:5.50, note:"Coastal storm"},
+    {date:"08-21-2025", ft:5.49, note:"Coastal storm"},
+    {date:"10-27-2018", ft:5.41, note:"Coastal storm"},
+    {date:"03-09-2024", ft:5.39, note:"Coastal storm"}
   ];
 
   // Annual counts (2000–2025)
