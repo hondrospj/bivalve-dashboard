@@ -142,6 +142,7 @@
       color: var(--muted);
     }
 
+    /* 4 metrics in hero */
     .liveRow{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -158,6 +159,7 @@
       border: 1px solid var(--line);
       border-radius: 14px;
       padding: 12px;
+      min-height: 88px;
     }
 
     .metricLabel{
@@ -291,6 +293,7 @@
             </div>
           </div>
 
+          <!-- 4 metrics -->
           <div class="liveRow">
             <div class="metric">
               <div class="metricLabel">Current water elevation</div>
@@ -301,7 +304,19 @@
             <div class="metric">
               <div class="metricLabel">Monthly maximum (this month)</div>
               <div class="metricValue"><span id="monthMaxFeet">—</span><span class="unit">ft</span></div>
-              <div class="mini" id="monthMaxMeta">Window: —</div>
+              <div class="mini" id="monthMaxMeta">—</div>
+            </div>
+
+            <div class="metric">
+              <div class="metricLabel">Daily maximum (today)</div>
+              <div class="metricValue"><span id="dayMaxFeet">—</span><span class="unit">ft</span></div>
+              <div class="mini" id="dayMaxMeta">—</div>
+            </div>
+
+            <div class="metric">
+              <div class="metricLabel">Daily minimum (today)</div>
+              <div class="metricValue"><span id="dayMinFeet">—</span><span class="unit">ft</span></div>
+              <div class="mini" id="dayMinMeta">—</div>
             </div>
           </div>
 
@@ -337,15 +352,15 @@
         <div style="height:12px"></div>
 
         <div class="cardHeader">
-          <h2>Annual tidal flooding counts (2000–2025)</h2>
+          <h2>Annual tidal flooding counts</h2>
         </div>
 
         <div class="chartWrap">
           <canvas id="annualChart"></canvas>
         </div>
 
-        <div class="footerNote">
-          Note: <b>sparse data</b> in <b>2000</b> and <b>2001</b>.
+        <div class="footerNote" id="chartNote">
+          Note: <b>sparse data</b> in <b>2000</b> and <b>2001</b>. Current year is computed from live gauge data.
         </div>
       </div>
 
@@ -385,10 +400,7 @@
     majorLow: 6.19
   };
 
-  // Top 10 highest tides with updated contexts:
-  // - 08-27-2011 => Tropical Storm Irene
-  // - 08-04-2020 => Tropical Storm Isaias
-  // - all other "Coastal event" => "Coastal storm"
+  // Top 10 highest tides contexts (your latest)
   const TOP_TEN = [
     {date:"10-29-2012", ft:7.03, note:"Hurricane Sandy"},
     {date:"11-25-1950", ft:6.60, note:"Historic coastal storm"},
@@ -402,101 +414,36 @@
     {date:"03-09-2024", ft:5.39, note:"Coastal storm"}
   ];
 
-  // Annual counts (2000–2025)
-  const YEARS = Array.from({length: 26}, (_,i)=>2000+i);
-  const minorCounts = [0,0,1,20,13,25,19,16,20,29,25,30,23,20,23,11,23,34,40,44,35,31,14,41,65,38];
-  const moderateCounts = [0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,2,0,2,0,1,0,1,0,3,1];
-  const majorCounts = YEARS.map(_=>0);
+  // Historical annual counts you provided (2000–2025)
+  const START_YEAR = 2000;
+  const PROVIDED_END_YEAR = 2025;
+
+  const providedMinor = [0,0,1,20,13,25,19,16,20,29,25,30,23,20,23,11,23,34,40,44,35,31,14,41,65,38];
+  const providedModerate = [0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,2,0,2,0,1,0,1,0,3,1];
+  const providedMajor = providedMinor.map(_=>0); // placeholder
 
   // ==========================
   // DOM
   // ==========================
   const currentFeetEl = document.getElementById("currentFeet");
   const currentMetaEl = document.getElementById("currentMeta");
+
   const monthMaxFeetEl = document.getElementById("monthMaxFeet");
   const monthMaxMetaEl = document.getElementById("monthMaxMeta");
+
+  const dayMaxFeetEl = document.getElementById("dayMaxFeet");
+  const dayMaxMetaEl = document.getElementById("dayMaxMeta");
+
+  const dayMinFeetEl = document.getElementById("dayMinFeet");
+  const dayMinMetaEl = document.getElementById("dayMinMeta");
+
   const liveStageText = document.getElementById("liveStageText");
   const liveDot = document.getElementById("liveDot");
+  const chartNoteEl = document.getElementById("chartNote");
 
   // ==========================
-  // Top 10 table
+  // Helpers: time, formatting
   // ==========================
-  const topTenBody = document.getElementById("topTenBody");
-  TOP_TEN.forEach(r=>{
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${r.date}</td>
-      <td><b>${r.ft.toFixed(2)}</b></td>
-      <td class="muted">${r.note}</td>
-    `;
-    topTenBody.appendChild(tr);
-  });
-
-  // ==========================
-  // Chart
-  // ==========================
-  const ctx = document.getElementById("annualChart");
-  const suggestedMin = 0;
-  const suggestedMax = Math.max(...minorCounts) + 10;
-
-  new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: YEARS,
-      datasets: [
-        { label: "Minor", data: minorCounts, stack: "flood", borderWidth: 0, backgroundColor: "rgba(251,191,36,.85)" },
-        { label: "Moderate", data: moderateCounts, stack: "flood", borderWidth: 0, backgroundColor: "rgba(251,113,133,.80)" },
-        { label: "Major", data: majorCounts, stack: "flood", borderWidth: 0, backgroundColor: "rgba(167,139,250,.80)" }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      layout: { padding: { top: 4, right: 6, bottom: 0, left: 6 } },
-      plugins: {
-        legend: {
-          labels: {
-            color: "rgba(234,240,255,.85)",
-            font: { weight: "800" },
-            boxWidth: 18
-          }
-        }
-      },
-      scales: {
-        x: {
-          stacked: true,
-          ticks: {
-            color: "rgba(169,182,211,.9)",
-            maxRotation: 0,
-            autoSkip: true,
-            maxTicksLimit: 8
-          },
-          grid: { color: "rgba(255,255,255,.06)" }
-        },
-        y: {
-          stacked: true,
-          suggestedMin,
-          suggestedMax,
-          ticks: {
-            color: "rgba(169,182,211,.9)",
-            maxTicksLimit: 6
-          },
-          grid: { color: "rgba(255,255,255,.06)" }
-        }
-      }
-    }
-  });
-
-  // ==========================
-  // Live data
-  // ==========================
-  function classifyStage(ft){
-    if (ft >= THRESH.majorLow) return {label:"MAJOR FLOODING", color:"var(--major)", glow:"rgba(167,139,250,.22)"};
-    if (ft >= THRESH.moderateLow) return {label:"MODERATE FLOODING", color:"var(--moderate)", glow:"rgba(251,113,133,.22)"};
-    if (ft >= THRESH.minorLow) return {label:"MINOR FLOODING", color:"var(--minor)", glow:"rgba(251,191,36,.22)"};
-    return {label:"BELOW FLOOD STAGE", color:"var(--good)", glow:"rgba(45,212,191,.18)"};
-  }
-
   function fmtNY(iso){
     try{
       const d = new Date(iso);
@@ -507,12 +454,46 @@
     }catch(e){ return iso; }
   }
 
-  function monthWindowISO(){
-    const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
-    return { startISO: start.toISOString(), endISO: now.toISOString() };
+  function getNYParts(date = new Date()){
+    const fmt = new Intl.DateTimeFormat("en-US", {
+      timeZone: TZ,
+      year: "numeric", month: "2-digit", day: "2-digit"
+    });
+    const parts = fmt.formatToParts(date);
+    const y = parts.find(p=>p.type==="year")?.value;
+    const m = parts.find(p=>p.type==="month")?.value;
+    const d = parts.find(p=>p.type==="day")?.value;
+    return { y: Number(y), m: Number(m), d: Number(d) };
   }
 
+  // Start of today in NY, expressed as UTC ISO by constructing a Date from NY y/m/d and adding timezone via toISOString trick:
+  // We'll build a UTC ISO range by using Date.UTC and then let USGS interpret as UTC timestamps (it does).
+  function startOfTodayNY_ISO(){
+    const {y,m,d} = getNYParts(new Date());
+    const utc = new Date(Date.UTC(y, m-1, d, 0, 0, 0));
+    return utc.toISOString();
+  }
+
+  function startOfMonthNY_ISO(){
+    const {y,m} = getNYParts(new Date());
+    const utc = new Date(Date.UTC(y, m-1, 1, 0, 0, 0));
+    return utc.toISOString();
+  }
+
+  function nowISO(){
+    return new Date().toISOString();
+  }
+
+  function classifyStage(ft){
+    if (ft >= THRESH.majorLow) return {label:"MAJOR FLOODING", color:"var(--major)", glow:"rgba(167,139,250,.22)"};
+    if (ft >= THRESH.moderateLow) return {label:"MODERATE FLOODING", color:"var(--moderate)", glow:"rgba(251,113,133,.22)"};
+    if (ft >= THRESH.minorLow) return {label:"MINOR FLOODING", color:"var(--minor)", glow:"rgba(251,191,36,.22)"};
+    return {label:"BELOW FLOOD STAGE", color:"var(--good)", glow:"rgba(45,212,191,.18)"};
+  }
+
+  // ==========================
+  // USGS IV fetch
+  // ==========================
   async function fetchIV({startISO=null, endISO=null, parameterCd=PRIMARY_PARAM}={}){
     const url = new URL("https://waterservices.usgs.gov/nwis/iv/");
     url.searchParams.set("format","json");
@@ -545,39 +526,265 @@
     return series;
   }
 
-  async function updateLive(){
-    const series = await fetchWithFallback({});
-    if(series.length === 0) throw new Error("No IV data returned.");
+  // ==========================
+  // Flood-event counting for a year (episode-based)
+  // - Find "episodes" where ft >= minorLow
+  // - Track episode peak, then bin it:
+  //   peak >= majorLow => major
+  //   peak >= moderateLow => moderate
+  //   peak >= minorLow => minor
+  // ==========================
+  function countFloodEvents(points){
+    if (!points.length) return {minor:0, moderate:0, major:0};
 
-    const last = series[series.length - 1];
-    currentFeetEl.textContent = last.ft.toFixed(2);
-    currentMetaEl.textContent = "Updated: " + fmtNY(last.t);
+    // ensure chronological
+    points.sort((a,b)=> new Date(a.t) - new Date(b.t));
 
-    const cls = classifyStage(last.ft);
+    let inEvent = false;
+    let peak = -Infinity;
+
+    let minor=0, moderate=0, major=0;
+
+    for (const p of points){
+      const ft = p.ft;
+
+      if (!inEvent){
+        if (ft >= THRESH.minorLow){
+          inEvent = true;
+          peak = ft;
+        }
+      } else {
+        // in event
+        if (ft > peak) peak = ft;
+
+        if (ft < THRESH.minorLow){
+          // event ends; bin by peak
+          if (peak >= THRESH.majorLow) major++;
+          else if (peak >= THRESH.moderateLow) moderate++;
+          else if (peak >= THRESH.minorLow) minor++;
+
+          inEvent = false;
+          peak = -Infinity;
+        }
+      }
+    }
+
+    // If still inEvent at end, close it
+    if (inEvent){
+      if (peak >= THRESH.majorLow) major++;
+      else if (peak >= THRESH.moderateLow) moderate++;
+      else if (peak >= THRESH.minorLow) minor++;
+    }
+
+    return {minor, moderate, major};
+  }
+
+  async function computeYearCountsLive(year){
+    // Pull data month-by-month to keep requests reasonable.
+    // We only do this for the CURRENT year (or any extra year beyond 2025).
+    const all = [];
+
+    for (let month = 0; month < 12; month++){
+      const start = new Date(Date.UTC(year, month, 1, 0, 0, 0));
+      const end = (month === 11)
+        ? new Date(Date.UTC(year+1, 0, 1, 0, 0, 0))
+        : new Date(Date.UTC(year, month+1, 1, 0, 0, 0));
+
+      // Don’t request future months for the current year
+      const now = new Date();
+      if (start > now) break;
+
+      const series = await fetchWithFallback({startISO: start.toISOString(), endISO: end.toISOString()});
+      all.push(...series);
+    }
+
+    return countFloodEvents(all);
+  }
+
+  // ==========================
+  // RENDER: Top 10 table
+  // ==========================
+  const topTenBody = document.getElementById("topTenBody");
+  TOP_TEN.forEach(r=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${r.date}</td>
+      <td><b>${r.ft.toFixed(2)}</b></td>
+      <td class="muted">${r.note}</td>
+    `;
+    topTenBody.appendChild(tr);
+  });
+
+  // ==========================
+  // Chart: build base arrays (2000–2025 provided) + append current year if needed
+  // ==========================
+  const ny = getNYParts(new Date()).y;
+  const END_YEAR = Math.max(PROVIDED_END_YEAR, ny); // extend chart to current year if > 2025
+  const YEARS = Array.from({length: END_YEAR - START_YEAR + 1}, (_,i)=> START_YEAR + i);
+
+  // Fill with provided where available; for years beyond 2025, start as null and compute live
+  const minorCounts = YEARS.map((y, idx)=>{
+    if (y <= PROVIDED_END_YEAR) return providedMinor[y - START_YEAR];
+    return null;
+  });
+  const moderateCounts = YEARS.map((y, idx)=>{
+    if (y <= PROVIDED_END_YEAR) return providedModerate[y - START_YEAR];
+    return null;
+  });
+  const majorCounts = YEARS.map((y, idx)=>{
+    if (y <= PROVIDED_END_YEAR) return providedMajor[y - START_YEAR];
+    return null;
+  });
+
+  const ctx = document.getElementById("annualChart");
+  const suggestedMin = 0;
+  const suggestedMax = Math.max(...providedMinor) + 10;
+
+  const annualChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: YEARS,
+      datasets: [
+        { label: "Minor", data: minorCounts, stack: "flood", borderWidth: 0, backgroundColor: "rgba(251,191,36,.85)" },
+        { label: "Moderate", data: moderateCounts, stack: "flood", borderWidth: 0, backgroundColor: "rgba(251,113,133,.80)" },
+        { label: "Major", data: majorCounts, stack: "flood", borderWidth: 0, backgroundColor: "rgba(167,139,250,.80)" }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { top: 4, right: 6, bottom: 0, left: 6 } },
+      plugins: {
+        legend: {
+          labels: {
+            color: "rgba(234,240,255,.85)",
+            font: { weight: "800" },
+            boxWidth: 18
+          }
+        },
+        tooltip: { enabled: true }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          ticks: {
+            color: "rgba(169,182,211,.9)",
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 8
+          },
+          grid: { color: "rgba(255,255,255,.06)" }
+        },
+        y: {
+          stacked: true,
+          suggestedMin,
+          suggestedMax,
+          ticks: {
+            color: "rgba(169,182,211,.9)",
+            maxTicksLimit: 6
+          },
+          grid: { color: "rgba(255,255,255,.06)" }
+        }
+      }
+    }
+  });
+
+  // ==========================
+  // Live metrics: current, monthly max, daily max, daily min
+  // ==========================
+  function setStagePill(ft){
+    const cls = classifyStage(ft);
     liveStageText.textContent = cls.label;
     liveDot.style.background = cls.color;
     liveDot.style.boxShadow = `0 0 0 4px ${cls.glow}`;
+  }
 
-    const win = monthWindowISO();
-    const seriesM = await fetchWithFallback({startISO: win.startISO, endISO: win.endISO});
-    if(seriesM.length){
-      const max = seriesM.reduce((a,b)=> b.ft>a.ft?b:a, seriesM[0]);
-      monthMaxFeetEl.textContent = max.ft.toFixed(2);
-      monthMaxMetaEl.textContent = `Max @ ${fmtNY(max.t)}`;
+  function maxPoint(series){
+    return series.reduce((a,b)=> b.ft>a.ft?b:a, series[0]);
+  }
+
+  function minPoint(series){
+    return series.reduce((a,b)=> b.ft<a.ft?b:a, series[0]);
+  }
+
+  async function updateLiveMetrics(){
+    // Current
+    const seriesNow = await fetchWithFallback({});
+    if(seriesNow.length === 0) throw new Error("No IV data returned.");
+
+    const last = seriesNow[seriesNow.length - 1];
+    currentFeetEl.textContent = last.ft.toFixed(2);
+    currentMetaEl.textContent = "Updated: " + fmtNY(last.t);
+    setStagePill(last.ft);
+
+    // Monthly max
+    const mStart = startOfMonthNY_ISO();
+    const mEnd = nowISO();
+    const seriesMonth = await fetchWithFallback({startISO: mStart, endISO: mEnd});
+    if(seriesMonth.length){
+      const mx = maxPoint(seriesMonth);
+      monthMaxFeetEl.textContent = mx.ft.toFixed(2);
+      monthMaxMetaEl.textContent = "Max @ " + fmtNY(mx.t);
     }else{
       monthMaxFeetEl.textContent = "—";
       monthMaxMetaEl.textContent = "No data this month.";
     }
+
+    // Daily max/min (today)
+    const dStart = startOfTodayNY_ISO();
+    const dEnd = nowISO();
+    const seriesDay = await fetchWithFallback({startISO: dStart, endISO: dEnd});
+    if(seriesDay.length){
+      const dmx = maxPoint(seriesDay);
+      const dmn = minPoint(seriesDay);
+      dayMaxFeetEl.textContent = dmx.ft.toFixed(2);
+      dayMaxMetaEl.textContent = "Max @ " + fmtNY(dmx.t);
+      dayMinFeetEl.textContent = dmn.ft.toFixed(2);
+      dayMinMetaEl.textContent = "Min @ " + fmtNY(dmn.t);
+    }else{
+      dayMaxFeetEl.textContent = "—";
+      dayMaxMetaEl.textContent = "No data today.";
+      dayMinFeetEl.textContent = "—";
+      dayMinMetaEl.textContent = "No data today.";
+    }
   }
 
+  // ==========================
+  // Live annual floods for "present" year (computed from thresholds)
+  // ==========================
+  async function updatePresentYearFloodCounts(){
+    const currentYear = getNYParts(new Date()).y;
+
+    // Only compute live for years beyond the provided dataset OR for the current year if it is within range
+    // (This lets “present” floods always be live.)
+    const idx = YEARS.indexOf(currentYear);
+    if (idx === -1) return;
+
+    chartNoteEl.innerHTML = `Note: <b>sparse data</b> in <b>2000</b> and <b>2001</b>. <b>${currentYear}</b> is computed from live gauge data using your flood thresholds.`;
+
+    const counts = await computeYearCountsLive(currentYear);
+
+    annualChart.data.datasets[0].data[idx] = counts.minor;
+    annualChart.data.datasets[1].data[idx] = counts.moderate;
+    annualChart.data.datasets[2].data[idx] = counts.major;
+
+    annualChart.update();
+  }
+
+  // ==========================
+  // Boot
+  // ==========================
   async function boot(){
     try{
-      await updateLive();
+      await updateLiveMetrics();
+      await updatePresentYearFloodCounts();
     }catch(err){
       console.error(err);
       liveStageText.textContent = "LIVE DATA UNAVAILABLE";
       currentMetaEl.textContent = "Could not load USGS live data.";
       monthMaxMetaEl.textContent = "Could not load monthly window.";
+      dayMaxMetaEl.textContent = "Could not load daily window.";
+      dayMinMetaEl.textContent = "Could not load daily window.";
     }
   }
 
