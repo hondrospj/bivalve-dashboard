@@ -9,227 +9,125 @@
 
   <style>
     :root{
-      --bg:#0b1220;
-      --text:#eaf0ff;
-      --muted:#a9b6d3;
-      --line:rgba(255,255,255,.085);
-
-      --ok:#2dd4bf;
-      --minor:#fbbf24;
-      --moderate:#fb7185;
-      --major:#a78bfa;
-
-      --shadow: 0 22px 70px rgba(0,0,0,.40);
-      --radius: 18px;
-
-      --card: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.025));
-      --card2: rgba(0,0,0,.18);
+      --bg:#0b1220; --text:#eaf0ff; --muted:#a9b6d3; --line:rgba(255,255,255,.085);
+      --ok:#2dd4bf; --minor:#fbbf24; --moderate:#fb7185; --major:#a78bfa;
+      --shadow:0 22px 70px rgba(0,0,0,.40); --radius:18px;
+      --card:linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.025));
+      --card2:rgba(0,0,0,.18);
     }
-
     *{box-sizing:border-box}
-    html,body{height:100%}
     body{
       margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
       background:
         radial-gradient(1200px 650px at 15% -10%, rgba(34,211,238,.18), transparent 55%),
         radial-gradient(1000px 600px at 92% 12%, rgba(167,139,250,.16), transparent 55%),
         var(--bg);
       color:var(--text);
     }
-
     .wrap{max-width:1200px;margin:0 auto;padding:16px 16px 28px}
+    a{color:inherit;text-decoration:none}
 
-    /* top banner */
     .banner{
       display:none;
       border:1px solid rgba(255,255,255,.12);
       background: rgba(251,113,133,.12);
-      color: var(--text);
-      border-radius: 14px;
-      padding: 12px 12px;
-      margin-bottom: 12px;
-      box-shadow: var(--shadow);
+      border-radius:14px;
+      padding:12px 12px;
+      margin-bottom:12px;
+      box-shadow:var(--shadow);
     }
-    .banner b{font-weight:900}
-    .banner .small{color:var(--muted); font-size:12.5px; margin-top:4px; line-height:1.25}
+    .banner b{font-weight:950}
+    .banner .small{color:var(--muted);font-size:12.5px;margin-top:4px;line-height:1.25}
 
-    /* header */
-    .top{
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
-      margin-bottom: 12px;
-    }
-    .brand{
-      display:flex; align-items:center; gap:12px;
-      text-decoration:none; color:inherit;
-    }
-    .brand img{width:42px;height:42px}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .brand img{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.25)}
     .brandTitle{display:flex;flex-direction:column;line-height:1.1}
-    .brandTitle .kicker{color:var(--muted); font-weight:800; font-size:12px; letter-spacing:.2px; text-transform:uppercase}
-    .brandTitle .name{font-size:18px; font-weight:950; letter-spacing:.2px}
+    .kicker{color:var(--muted);font-weight:850;font-size:12px;letter-spacing:.2px;text-transform:uppercase}
+    .name{font-size:18px;font-weight:950;letter-spacing:.2px}
 
     .statusPill{
-      display:flex; align-items:center; gap:10px;
-      padding: 10px 12px;
-      border-radius: 999px;
-      border:1px solid var(--line);
-      background: rgba(0,0,0,.16);
-      box-shadow: var(--shadow);
-      font-weight:900;
-      font-size:12.5px;
-      white-space:nowrap;
+      display:flex;align-items:center;gap:10px;
+      padding:10px 12px;border-radius:999px;
+      border:1px solid var(--line);background:rgba(0,0,0,.16);
+      box-shadow:var(--shadow);
+      font-weight:950;font-size:12.5px;white-space:nowrap;
     }
-    .dot{width:9px;height:9px;border-radius:999px;background:var(--ok); box-shadow:0 0 0 4px rgba(45,212,191,.16)}
+    .dot{width:9px;height:9px;border-radius:999px;background:var(--ok);box-shadow:0 0 0 4px rgba(45,212,191,.16)}
 
-    /* grid */
-    .grid{
-      display:grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap:14px;
-      margin-top: 10px;
-    }
-    @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
-
+    .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-top:10px}
+    @media(max-width:980px){.grid{grid-template-columns:1fr}}
     .card{
-      background: var(--card);
+      background:var(--card);
       border:1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 14px;
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:14px;
       overflow:hidden;
       position:relative;
     }
     .card:before{
-      content:"";
-      position:absolute; inset:-1px;
+      content:"";position:absolute;inset:-1px;pointer-events:none;opacity:.9;
       background:
         radial-gradient(650px 280px at 16% 0%, rgba(45,212,191,.12), transparent 55%),
         radial-gradient(520px 320px at 90% 18%, rgba(251,113,133,.10), transparent 60%);
-      pointer-events:none;
-      opacity:.9;
     }
-    .card > *{position:relative}
+    .card>*{position:relative}
 
     .hrow{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
     .hrow h2{
-      margin:0;
-      font-size: 12.5px;
-      letter-spacing:.22px;
-      text-transform:uppercase;
-      color:var(--muted);
-      font-weight:950;
+      margin:0;font-size:12.5px;letter-spacing:.22px;text-transform:uppercase;color:var(--muted);font-weight:950
     }
 
-    /* metrics */
-    .metrics{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-      margin-top: 8px;
-    }
-    @media (max-width: 720px){ .metrics{grid-template-columns:1fr} }
-    .metric{
-      background: var(--card2);
-      border:1px solid var(--line);
-      border-radius: 14px;
-      padding: 12px;
-      min-height: 88px;
-    }
-    .ml{color:var(--muted); font-weight:900; font-size:11.5px; text-transform:uppercase; letter-spacing:.2px; margin-bottom:8px}
-    .mv{display:flex; align-items:baseline; gap:8px; font-weight:950; font-size:28px; letter-spacing:.2px}
-    .unit{color:var(--muted); font-size:12px; font-weight:900}
-    .ms{margin-top:6px; color:var(--muted); font-size:12.5px; line-height:1.25}
+    .metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+    @media(max-width:720px){.metrics{grid-template-columns:1fr}}
+    .metric{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:12px;min-height:88px}
+    .ml{color:var(--muted);font-weight:950;font-size:11.5px;text-transform:uppercase;letter-spacing:.2px;margin-bottom:8px}
+    .mv{display:flex;align-items:baseline;gap:8px;font-weight:950;font-size:28px;letter-spacing:.2px}
+    .unit{color:var(--muted);font-size:12px;font-weight:950}
+    .ms{margin-top:6px;color:var(--muted);font-size:12.5px;line-height:1.25}
 
-    /* stages */
     .stages{
-      display:grid;
-      grid-template-columns: repeat(3, minmax(220px, 1fr));
-      gap:10px;
-      overflow-x:auto;
-      padding-bottom:2px;
-      -webkit-overflow-scrolling: touch;
-      margin-top: 8px;
+      display:grid;grid-template-columns:repeat(3, minmax(220px,1fr));
+      gap:10px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch;margin-top:8px
     }
-    .stages::-webkit-scrollbar{height:8px}
-    .stages::-webkit-scrollbar-thumb{background:rgba(255,255,255,.10);border-radius:999px}
-    @media (max-width: 760px){ .stages{grid-template-columns:1fr; overflow-x:visible} }
+    @media(max-width:760px){.stages{grid-template-columns:1fr;overflow-x:visible}}
+    .stage{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:220px}
+    .stageName{font-weight:950;font-size:20px;letter-spacing:.2px;white-space:nowrap}
+    .badge{font-weight:950;font-size:13px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.06);white-space:nowrap}
 
-    .stage{
-      background: var(--card2);
-      border:1px solid var(--line);
-      border-radius: 14px;
-      padding: 14px 14px;
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      min-width:220px;
-    }
-    .stageName{font-weight:950; font-size:20px; letter-spacing:.2px; white-space:nowrap}
-    .badge{
-      font-weight:950;
-      font-size:13px;
-      padding: 10px 14px;
-      border-radius: 999px;
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.06);
-      white-space:nowrap;
-      flex:0 0 auto;
-    }
-
-    /* tables */
-    table{width:100%; border-collapse:collapse}
-    .table{
-      border-radius: 14px;
-      overflow:hidden;
-      border:1px solid var(--line);
-      background: var(--card2);
-    }
-    th,td{padding:10px 10px; border-bottom:1px solid var(--line); font-size:13px}
-    th{
-      text-align:left;
-      color:var(--muted);
-      text-transform:uppercase;
-      letter-spacing:.2px;
-      font-size:11px;
-      font-weight:950;
-    }
+    .table{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--card2)}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px 10px;border-bottom:1px solid var(--line);font-size:13px}
+    th{text-align:left;color:var(--muted);text-transform:uppercase;letter-spacing:.2px;font-size:11px;font-weight:950}
     tr:last-child td{border-bottom:none}
-    .muted{color:var(--muted)}
-    .tag{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:6px 10px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.05);
-      font-weight:950;
-      font-size:12px;
-      white-space:nowrap;
-    }
+
+    .tag{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.05);font-weight:950;font-size:12px;white-space:nowrap}
     .chip{width:9px;height:9px;border-radius:99px;display:inline-block}
 
-    /* chart */
-    .chartWrap{height:270px; width:100%}
-    .chartWrapTall{height:320px; width:100%}
+    .chartWrapTall{height:320px;width:100%}
+    .chartWrap{height:270px;width:100%}
+    .foot{margin-top:10px;color:var(--muted);font-size:12.5px;line-height:1.25}
 
-    /* filter */
-    .filterRow{
-      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-      margin-bottom: 10px;
-    }
-    .input, .btn, select{
-      background: rgba(0,0,0,.18);
-      border:1px solid var(--line);
-      color: var(--text);
-      border-radius: 12px;
-      padding: 10px 10px;
-      font-weight:900;
-      font-size: 13px;
-      outline:none;
+    .filterRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+    .input,.btn,select{
+      background:rgba(0,0,0,.18);border:1px solid var(--line);color:var(--text);
+      border-radius:12px;padding:10px 10px;font-weight:950;font-size:13px;outline:none
     }
     .input{min-width:240px}
     .btn{cursor:pointer}
     .btn:hover{filter:brightness(1.06)}
-    .hint{color:var(--muted); font-size:12.5px; line-height:1.25}
+    .hint{color:var(--muted);font-size:12.5px;line-height:1.25}
 
-    .foot{margin-top:10px;color:var(--muted);font-size:12.5px;line-height:1.25}
+    .miniPill{
+      display:none;
+      margin-left:10px;
+      align-items:center;gap:10px;
+      padding:8px 10px;border-radius:999px;
+      border:1px solid var(--line);background:rgba(0,0,0,.14);
+      font-weight:950;font-size:12.5px;
+    }
   </style>
 </head>
 
@@ -243,29 +141,32 @@
 
     <div class="top">
       <a class="brand" href="https://cupajoe.live/" target="_blank" rel="noopener">
-        <img src="assets/cupajoe-logo.svg" alt="cupajoe logo">
+        <img src="assets/cupajoe-logo.png" alt="Cupajoe logo">
         <div class="brandTitle">
           <div class="kicker">USGS 01412150 · Maurice River at Bivalve, NJ</div>
           <div class="name">Bivalve Tidal Flooding Dashboard</div>
         </div>
       </a>
 
-      <div class="statusPill" id="stagePill">
-        <span class="dot" id="stageDot"></span>
-        <span id="stageText">Loading…</span>
+      <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap">
+        <div class="miniPill" id="nearPill">
+          <span class="chip" id="nearChip" style="background:var(--moderate)"></span>
+          <span id="nearText">—</span>
+        </div>
+
+        <div class="statusPill" id="stagePill">
+          <span class="dot" id="stageDot"></span>
+          <span id="stageText">Loading…</span>
+        </div>
       </div>
     </div>
 
     <div class="grid">
-
       <!-- LEFT -->
       <div class="card">
         <div class="hrow">
           <h2>Live conditions</h2>
-          <div class="tag" id="nearMatchTag" style="display:none;">
-            <span class="chip" style="background:var(--moderate)"></span>
-            <span id="nearMatchText">—</span>
-          </div>
+          <div id="statusText" class="kicker" style="text-transform:none">—</div>
         </div>
 
         <div class="metrics">
@@ -294,7 +195,7 @@
           </div>
         </div>
 
-        <div class="stages" aria-label="Flood stages" style="margin-top:12px">
+        <div class="stages" aria-label="Flood stages">
           <div class="stage">
             <div class="stageName">Minor</div>
             <div class="badge" style="color:var(--minor)">4.19–5.19</div>
@@ -308,13 +209,6 @@
             <div class="badge" style="color:var(--major)">≥ 6.19</div>
           </div>
         </div>
-
-        <div style="height:12px"></div>
-
-        <div class="hrow">
-          <h2>72 hours: observations vs NYHOPS forecast</h2>
-        </div>
-        <div class="chartWrapTall"><canvas id="tsChart"></canvas></div>
 
         <div class="foot" id="tsNote">—</div>
       </div>
@@ -341,63 +235,88 @@
 
         <div style="height:12px"></div>
 
-        <div class="hrow"><h2>Annual tidal flooding counts</h2></div>
+        <div class="hrow">
+          <h2>Annual tidal flooding counts (2000–2025)</h2>
+        </div>
         <div class="chartWrap"><canvas id="annualChart"></canvas></div>
-        <div class="foot">Note: <b>sparse data</b> in <b>2000</b> and <b>2001</b>.</div>
+        <div class="foot">Note: sparse data in 2000–2001.</div>
+      </div>
+    </div>
 
-        <div style="height:12px"></div>
+    <div style="height:14px"></div>
 
-        <div class="hrow"><h2>Historic tides (filter)</h2></div>
+    <div class="card">
+      <div class="hrow">
+        <h2>72 hours: observations vs NYHOPS forecast</h2>
+        <div class="kicker" style="text-transform:none">Observed: USGS 15-min · Forecast: NYHOPS (U238)</div>
+      </div>
+      <div class="chartWrapTall"><canvas id="tsChart"></canvas></div>
+      <div class="foot" id="fcNote">—</div>
+    </div>
 
-        <div class="filterRow">
-          <input class="input" id="minElev" type="number" step="0.01" value="4.19" />
-          <select id="sortMode">
-            <option value="desc">Highest first</option>
-            <option value="asc">Lowest first</option>
-            <option value="recent">Most recent</option>
-          </select>
-          <button class="btn" id="applyBtn">Apply</button>
-          <button class="btn" id="resetBtn">Reset</button>
-        </div>
-        <div class="hint">Shows all indexed peaks ≥ your threshold.</div>
+    <div style="height:14px"></div>
 
-        <div style="height:10px"></div>
-
-        <div class="table">
-          <table aria-label="Historic tides above threshold">
-            <thead>
-              <tr>
-                <th>Date/Time</th>
-                <th>Peak (ft)</th>
-                <th>Type</th>
-              </tr>
-            </thead>
-            <tbody id="histBody"></tbody>
-          </table>
-        </div>
-
-        <div class="foot" id="histMeta">—</div>
+    <div class="card">
+      <div class="hrow">
+        <h2>Historic tides filter (above minor)</h2>
       </div>
 
+      <div class="filterRow">
+        <input class="input" id="minElev" type="number" step="0.01" value="4.19" />
+        <select id="sortMode">
+          <option value="desc">Highest first</option>
+          <option value="asc">Lowest first</option>
+          <option value="recent">Most recent</option>
+        </select>
+        <button class="btn" id="applyBtn">Apply</button>
+        <button class="btn" id="resetBtn">Reset</button>
+      </div>
+
+      <div class="hint" id="histMeta">Loading historic index…</div>
+
+      <div style="height:10px"></div>
+
+      <div class="table">
+        <table aria-label="Historic tides above threshold">
+          <thead>
+            <tr>
+              <th>Date/Time</th>
+              <th>Peak (ft)</th>
+              <th>Type</th>
+            </tr>
+          </thead>
+          <tbody id="histBody"></tbody>
+        </table>
+      </div>
+
+      <div class="foot">This table uses an indexed peak list (fast) — not a 365-day window.</div>
     </div>
+
   </div>
 
 <script>
-/** =========================
- * CONFIG
- * ========================= */
-const TZ = "America/New_York";
+/* =========================
+   CONFIG
+========================= */
+const TZ="America/New_York";
 
-// USGS live obs
-const USGS_SITE = "01412150";
-const PRIMARY_PARAM = "72279"; // tidal elevation (NOS-averaged), ft
-const FALLBACK_PARAM = "00065"; // gage height
+// USGS live observed
+const USGS_SITE="01412150";
+const PRIMARY_PARAM="72279";  // tidal elevation (NOS-averaged)
+const FALLBACK_PARAM="00065"; // gage height fallback
 
-// Your flood stages (ft)
-const THRESH = { minorLow:4.19, moderateLow:5.19, majorLow:6.19 };
+// Flood thresholds (ft)
+const THRESH={minorLow:4.19, moderateLow:5.19, majorLow:6.19};
 
-// Top 10 (given)
-const TOP_TEN = [
+// NWS banner query point (near Bivalve)
+const ALERT_POINT={lat:39.2325, lon:-75.0380};
+
+// Repo-built JSON paths
+const HIGH_TIDES_INDEX_JSON="data/high_tides_index.json";
+const NYHOPS_FORECAST_JSON="data/nyhops_forecast.json";
+
+// Top ten list (your provided values)
+const TOP_TEN=[
   {date:"10-29-2012", ft:7.03},
   {date:"11-25-1950", ft:6.60},
   {date:"04-16-2011", ft:5.80},
@@ -405,51 +324,45 @@ const TOP_TEN = [
   {date:"08-27-2011", ft:5.60},
   {date:"01-23-2016", ft:5.58},
   {date:"04-19-2022", ft:5.50},
-  {date:"08-21-2025", ft:5.49},
-  {date:"10-27-2018", ft:5.41},
+  {date:"08-21-????", ft:5.49},
+  {date:"10-26-2019", ft:5.41},
   {date:"03-09-2024", ft:5.39}
 ];
 
-// Annual counts you provided (2000–2025)
-const START_YEAR = 2000;
-const PROVIDED_END_YEAR = 2025;
-const providedMinor = [0,0,1,20,13,25,19,16,20,29,25,30,23,20,23,11,23,34,40,44,35,31,14,41,65,38];
-const providedModerate = [0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,2,0,2,0,1,0,1,0,3,1];
-const providedMajor = providedMinor.map(_=>0);
+// Annual flooding counts (2000–2025) you provided
+const START_YEAR=2000;
+const END_YEAR=2025;
+const providedMinor=[0,0,1,20,13,25,19,16,20,29,25,30,23,20,23,11,23,34,40,44,35,31,14,41,65,38];
+const providedModerate=[0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,2,0,2,0,1,0,1,0,3,1];
+const providedMajor=providedMinor.map(()=>0);
 
-// Repo-published forecast + tide index (updated by GitHub Action)
-const NYHOPS_FORECAST_JSON = "data/nyhops_forecast.json";
-const HIGH_TIDES_INDEX_JSON = "data/high_tides_index.json";
-
-// NWS alerts (Cape May County-ish polygon is messy; simplest is NJ coastal zone query by point)
-const ALERT_POINT = { lat: 39.30, lon: -75.15 }; // Bivalve-ish
-
-/** =========================
- * DOM
- * ========================= */
-const $ = (id)=>document.getElementById(id);
+/* =========================
+   DOM
+========================= */
+const $=id=>document.getElementById(id);
 const curFtEl=$("curFt"), curMetaEl=$("curMeta");
 const monMaxFtEl=$("monMaxFt"), monMaxMetaEl=$("monMaxMeta");
 const dayMaxFtEl=$("dayMaxFt"), dayMaxMetaEl=$("dayMaxMeta");
 const dayMinFtEl=$("dayMinFt"), dayMinMetaEl=$("dayMinMeta");
-const stageTextEl=$("stageText"), stageDotEl=$("stageDot"), stagePillEl=$("stagePill");
-const topTenBody=$("topTenBody");
-const histBody=$("histBody"), histMeta=$("histMeta");
-const nearMatchTag=$("nearMatchTag"), nearMatchText=$("nearMatchText");
+const stageTextEl=$("stageText"), stageDotEl=$("stageDot");
+const statusText=$("statusText");
+const nearPill=$("nearPill"), nearText=$("nearText"), nearChip=$("nearChip");
 const alertBanner=$("alertBanner"), alertTitle=$("alertTitle"), alertBody=$("alertBody");
-const tsNote=$("tsNote");
+const topTenBody=$("topTenBody");
+const tsNote=$("tsNote"), fcNote=$("fcNote");
+const histBody=$("histBody"), histMeta=$("histMeta");
+const minElevEl=$("minElev"), sortModeEl=$("sortMode");
 
-/** =========================
- * Helpers
- * ========================= */
+/* =========================
+   Helpers
+========================= */
 function fmtNY(iso){
   try{
     const d=new Date(iso);
-    return new Intl.DateTimeFormat("en-US", {
-      timeZone: TZ, year:"numeric", month:"short", day:"2-digit",
-      hour:"2-digit", minute:"2-digit"
+    return new Intl.DateTimeFormat("en-US",{
+      timeZone:TZ,year:"numeric",month:"short",day:"2-digit",hour:"2-digit",minute:"2-digit"
     }).format(d);
-  }catch{ return iso; }
+  }catch{return iso;}
 }
 function getNYParts(date=new Date()){
   const fmt=new Intl.DateTimeFormat("en-US",{timeZone:TZ,year:"numeric",month:"2-digit",day:"2-digit"});
@@ -471,33 +384,32 @@ function startOfMonthNY_ISO(){
 function nowISO(){ return new Date().toISOString(); }
 
 function classify(ft){
-  if (ft>=THRESH.majorLow) return {label:"MAJOR FLOODING", color:"var(--major)", glow:"rgba(167,139,250,.22)"};
-  if (ft>=THRESH.moderateLow) return {label:"MODERATE FLOODING", color:"var(--moderate)", glow:"rgba(251,113,133,.22)"};
-  if (ft>=THRESH.minorLow) return {label:"MINOR FLOODING", color:"var(--minor)", glow:"rgba(251,191,36,.22)"};
-  return {label:"BELOW FLOOD STAGE", color:"var(--ok)", glow:"rgba(45,212,191,.18)"};
+  if(ft>=THRESH.majorLow) return {label:"MAJOR FLOODING", color:"var(--major)", glow:"rgba(167,139,250,.22)", short:"Major"};
+  if(ft>=THRESH.moderateLow) return {label:"MODERATE FLOODING", color:"var(--moderate)", glow:"rgba(251,113,133,.22)", short:"Moderate"};
+  if(ft>=THRESH.minorLow) return {label:"MINOR FLOODING", color:"var(--minor)", glow:"rgba(251,191,36,.22)", short:"Minor"};
+  return {label:"BELOW FLOOD STAGE", color:"var(--ok)", glow:"rgba(45,212,191,.18)", short:"Below"};
 }
-function setStage(ft){
+function stageTag(ft){
   const c=classify(ft);
-  stageTextEl.textContent=c.label;
-  stageDotEl.style.background=c.color;
-  stageDotEl.style.boxShadow=`0 0 0 4px ${c.glow}`;
+  return {txt:c.short, c:c.color};
 }
-
 function maxPoint(arr){ return arr.reduce((a,b)=>b.ft>a.ft?b:a, arr[0]); }
 function minPoint(arr){ return arr.reduce((a,b)=>b.ft<a.ft?b:a, arr[0]); }
 
-/** =========================
- * USGS IV
- * ========================= */
-async function fetchIV({startISO=null,endISO=null,parameterCd=PRIMARY_PARAM}={}){
+/* =========================
+   USGS fetch
+========================= */
+async function fetchIV({startISO=null,endISO=null,parameterCd=PRIMARY_PARAM,period=null}={}){
   const url=new URL("https://waterservices.usgs.gov/nwis/iv/");
   url.searchParams.set("format","json");
   url.searchParams.set("sites",USGS_SITE);
   url.searchParams.set("parameterCd",parameterCd);
   url.searchParams.set("siteStatus","all");
   url.searchParams.set("agencyCd","USGS");
+  if(period) url.searchParams.set("period",period);
   if(startISO) url.searchParams.set("startDT",startISO);
   if(endISO) url.searchParams.set("endDT",endISO);
+
   const res=await fetch(url.toString(),{cache:"no-store"});
   if(!res.ok) throw new Error("USGS IV failed "+res.status);
   return res.json();
@@ -515,19 +427,38 @@ async function fetchWithFallback(opts){
   return extractSeries(j);
 }
 
-/** =========================
- * Render: Top ten
- * ========================= */
-function stageLabel(ft){
-  if(ft>=THRESH.majorLow) return {txt:"Major", c:"var(--major)"};
-  if(ft>=THRESH.moderateLow) return {txt:"Moderate", c:"var(--moderate)"};
-  if(ft>=THRESH.minorLow) return {txt:"Minor", c:"var(--minor)"};
-  return {txt:"Below", c:"var(--ok)"};
+/* =========================
+   NWS coastal flood banner
+========================= */
+async function updateAlerts(){
+  try{
+    const url=`https://api.weather.gov/alerts/active?point=${ALERT_POINT.lat},${ALERT_POINT.lon}`;
+    const res=await fetch(url,{cache:"no-store"});
+    if(!res.ok) throw new Error("alerts "+res.status);
+    const j=await res.json();
+    const feats=j?.features||[];
+    const coastal=feats.find(f=>{
+      const e=(f?.properties?.event||"").toLowerCase();
+      return e.includes("coastal flood");
+    });
+    if(!coastal){ alertBanner.style.display="none"; return; }
+    const p=coastal.properties||{};
+    alertTitle.textContent=p.event||"Coastal Flood Alert";
+    const ends=p.ends?fmtNY(p.ends):(p.expires?fmtNY(p.expires):"—");
+    alertBody.textContent=(p.headline?p.headline+" · ":"")+"Ends: "+ends;
+    alertBanner.style.display="block";
+  }catch{
+    alertBanner.style.display="none";
+  }
 }
+
+/* =========================
+   Top ten render
+========================= */
 function renderTopTen(){
   topTenBody.innerHTML="";
   TOP_TEN.forEach((r,i)=>{
-    const t=stageLabel(r.ft);
+    const t=stageTag(r.ft);
     const tr=document.createElement("tr");
     tr.innerHTML=`
       <td><b>#${i+1}</b></td>
@@ -539,96 +470,85 @@ function renderTopTen(){
   });
 }
 
-/** =========================
- * Annual chart
- * ========================= */
-const ny=getNYParts(new Date()).y;
-const END_YEAR=Math.max(PROVIDED_END_YEAR, ny);
+/* =========================
+   Annual chart
+========================= */
 const YEARS=Array.from({length:END_YEAR-START_YEAR+1},(_,i)=>START_YEAR+i);
-const minorCounts=YEARS.map(y=>y<=PROVIDED_END_YEAR?providedMinor[y-START_YEAR]:0);
-const moderateCounts=YEARS.map(y=>y<=PROVIDED_END_YEAR?providedModerate[y-START_YEAR]:0);
-const majorCounts=YEARS.map(y=>y<=PROVIDED_END_YEAR?providedMajor[y-START_YEAR]:0);
-
-const annualChart=new Chart(document.getElementById("annualChart"),{
+const annualChart=new Chart($("annualChart"),{
   type:"bar",
   data:{
     labels:YEARS,
     datasets:[
-      {label:"Minor", data:minorCounts, stack:"f", borderWidth:0, backgroundColor:"rgba(251,191,36,.85)"},
-      {label:"Moderate", data:moderateCounts, stack:"f", borderWidth:0, backgroundColor:"rgba(251,113,133,.80)"},
-      {label:"Major", data:majorCounts, stack:"f", borderWidth:0, backgroundColor:"rgba(167,139,250,.80)"}
+      {label:"Minor",data:providedMinor,stack:"f",borderWidth:0,backgroundColor:"rgba(251,191,36,.85)"},
+      {label:"Moderate",data:providedModerate,stack:"f",borderWidth:0,backgroundColor:"rgba(251,113,133,.80)"},
+      {label:"Major",data:providedMajor,stack:"f",borderWidth:0,backgroundColor:"rgba(167,139,250,.80)"}
     ]
   },
   options:{
-    responsive:true,
-    maintainAspectRatio:false,
-    plugins:{
-      legend:{labels:{color:"rgba(234,240,255,.88)", font:{weight:"900"}, boxWidth:16}},
-      tooltip:{enabled:true}
-    },
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:"rgba(234,240,255,.88)",font:{weight:"950"},boxWidth:16}}},
     scales:{
-      x:{stacked:true, ticks:{color:"rgba(169,182,211,.9)", maxRotation:0, autoSkip:true, maxTicksLimit:8}, grid:{color:"rgba(255,255,255,.06)"}},
-      y:{stacked:true, ticks:{color:"rgba(169,182,211,.9)"}, grid:{color:"rgba(255,255,255,.06)"}}
+      x:{stacked:true,ticks:{color:"rgba(169,182,211,.9)",maxRotation:0,autoSkip:true,maxTicksLimit:8},grid:{color:"rgba(255,255,255,.06)"}},
+      y:{stacked:true,ticks:{color:"rgba(169,182,211,.9)"},grid:{color:"rgba(255,255,255,.06)"}}
     }
   }
 });
 
-/** =========================
- * 72h chart: obs + forecast
- * ========================= */
+/* =========================
+   72h chart (USGS obs + NYHOPS forecast file)
+========================= */
 let tsChart=null;
 function buildTsChart(obs, fc){
-  const labels = obs.map(p=>p.t).concat(fc.map(p=>p.t));
-  const obsData = obs.map(p=>p.ft).concat(new Array(fc.length).fill(null));
-  const fcData  = new Array(obs.length).fill(null).concat(fc.map(p=>p.ft));
+  const labels=[...obs.map(p=>p.t), ...fc.map(p=>p.t)];
+  const obsData=[...obs.map(p=>p.ft), ...Array(fc.length).fill(null)];
+  const fcData=[...Array(obs.length).fill(null), ...fc.map(p=>p.ft)];
 
-  const ctx=document.getElementById("tsChart");
   if(tsChart) tsChart.destroy();
-
-  tsChart=new Chart(ctx,{
+  tsChart=new Chart($("tsChart"),{
     type:"line",
     data:{
       labels,
       datasets:[
-        {label:"Observed (USGS)", data:obsData, borderWidth:2, pointRadius:0, tension:.25},
-        {label:"Forecast (NYHOPS)", data:fcData, borderWidth:2, pointRadius:0, borderDash:[6,5], tension:.25}
+        {label:"Observed (USGS)",data:obsData,borderWidth:2,pointRadius:0,tension:.25},
+        {label:"Forecast (NYHOPS)",data:fcData,borderWidth:2,pointRadius:0,borderDash:[6,5],tension:.25}
       ]
     },
     options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{
-        legend:{labels:{color:"rgba(234,240,255,.88)", font:{weight:"900"}}},
-        tooltip:{mode:"index", intersect:false}
-      },
-      interaction:{mode:"index", intersect:false},
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:"rgba(234,240,255,.88)",font:{weight:"950"}}}},
+      interaction:{mode:"index",intersect:false},
       scales:{
         x:{
           ticks:{
-            color:"rgba(169,182,211,.9)",
-            maxTicksLimit:6,
-            callback:(v,i)=> (i%Math.floor(labels.length/6||1)===0) ? fmtNY(labels[i]) : ""
+            color:"rgba(169,182,211,.9)",maxTicksLimit:6,
+            callback:(v,i)=> {
+              const n=labels.length;
+              const step=Math.max(1, Math.floor(n/6));
+              return (i%step===0)?fmtNY(labels[i]):"";
+            }
           },
           grid:{color:"rgba(255,255,255,.06)"}
         },
-        y:{
-          ticks:{color:"rgba(169,182,211,.9)"},
-          grid:{color:"rgba(255,255,255,.06)"}
-        }
+        y:{ticks:{color:"rgba(169,182,211,.9)"},grid:{color:"rgba(255,255,255,.06)"}}
       }
     }
   });
+
+  const obsMsg=obs.length?`Obs: ${fmtNY(obs[0].t)} → ${fmtNY(obs[obs.length-1].t)}`:"Obs: —";
+  const fcMsg=fc.length?`Forecast: ${fmtNY(fc[0].t)} → ${fmtNY(fc[fc.length-1].t)}`:"Forecast: unavailable";
+  fcNote.textContent=obsMsg+" · "+fcMsg;
 }
 
-/** =========================
- * Historic tide index (filter UI)
- * ========================= */
-let HIGH_TIDES = []; // {t, ft}
+/* =========================
+   Historic index (filter + last within ±0.2)
+========================= */
+let HIGH_TIDES=[]; // {t, ft}
+
 function renderHist(rows){
   histBody.innerHTML="";
-  const show = rows.slice(0, 80); // keep page snappy
+  const show=rows.slice(0, 80);
   for(const r of show){
-    const t=stageLabel(r.ft);
+    const t=stageTag(r.ft);
     const tr=document.createElement("tr");
     tr.innerHTML=`
       <td>${fmtNY(r.t)}</td>
@@ -637,169 +557,141 @@ function renderHist(rows){
     `;
     histBody.appendChild(tr);
   }
-  histMeta.textContent = `Indexed peaks: ${HIGH_TIDES.length.toLocaleString()} · Showing ${Math.min(80, rows.length)} of ${rows.length.toLocaleString()}`;
+  histMeta.textContent=`Indexed peaks: ${HIGH_TIDES.length.toLocaleString()} · Showing ${Math.min(80, rows.length)} of ${rows.length.toLocaleString()}`;
 }
+
 function applyFilter(){
-  const min = parseFloat($("minElev").value);
-  const mode = $("sortMode").value;
+  const min=parseFloat(minElevEl.value);
+  const mode=sortModeEl.value;
 
-  let rows = HIGH_TIDES.filter(r=>r.ft>=min);
-
+  let rows=HIGH_TIDES.filter(r=>r.ft>=min);
   if(mode==="desc") rows.sort((a,b)=>b.ft-a.ft);
   if(mode==="asc") rows.sort((a,b)=>a.ft-b.ft);
   if(mode==="recent") rows.sort((a,b)=>new Date(b.t)-new Date(a.t));
 
   renderHist(rows);
 }
-$("applyBtn").addEventListener("click", applyFilter);
-$("resetBtn").addEventListener("click", ()=>{
-  $("minElev").value = THRESH.minorLow.toFixed(2);
-  $("sortMode").value = "desc";
-  applyFilter();
-});
 
-/** =========================
- * "last time within 0.2 ft" logic
- * ========================= */
 function lastWithinDelta(currentFt){
   if(currentFt < THRESH.moderateLow) return null;
   const delta=0.2;
-  // Use indexed peaks (fast) – pick last peak within ±0.2 ft
   const lo=currentFt-delta, hi=currentFt+delta;
-  const hits = HIGH_TIDES.filter(r=>r.ft>=lo && r.ft<=hi).sort((a,b)=>new Date(b.t)-new Date(a.t));
-  return hits.length ? hits[0] : null;
+  const hits=HIGH_TIDES
+    .filter(r=>r.ft>=lo && r.ft<=hi)
+    .sort((a,b)=>new Date(b.t)-new Date(a.t));
+  return hits.length?hits[0]:null;
 }
 
-/** =========================
- * NWS coastal flood alerts banner
- * ========================= */
-async function updateAlerts(){
-  try{
-    const url = `https://api.weather.gov/alerts/active?point=${ALERT_POINT.lat},${ALERT_POINT.lon}`;
-    const res = await fetch(url,{cache:"no-store"});
-    if(!res.ok) throw new Error("alerts "+res.status);
-    const j = await res.json();
-    const feats = j?.features || [];
-
-    // Prefer coastal flood products; otherwise hide banner
-    const coastal = feats.find(f=>{
-      const e=f?.properties?.event?.toLowerCase?.() || "";
-      return e.includes("coastal flood");
-    });
-
-    if(!coastal){
-      alertBanner.style.display="none";
-      return;
-    }
-
-    const p=coastal.properties||{};
-    alertTitle.textContent = p.event || "Coastal Flood Alert";
-    const ends = p.ends ? fmtNY(p.ends) : "—";
-    alertBody.textContent = (p.headline ? p.headline + " · " : "") + "Ends: " + ends;
-    alertBanner.style.display="block";
-  }catch{
-    alertBanner.style.display="none";
-  }
+/* =========================
+   Live metrics
+========================= */
+function setStage(ft){
+  const c=classify(ft);
+  stageTextEl.textContent=c.label;
+  stageDotEl.style.background=c.color;
+  stageDotEl.style.boxShadow=`0 0 0 4px ${c.glow}`;
 }
 
-/** =========================
- * Boot: load repo JSON, load USGS live, load forecast JSON, draw charts
- * ========================= */
-async function loadRepoJSON(path){
-  const res = await fetch(path, {cache:"no-store"});
-  if(!res.ok) throw new Error("fetch "+path+" "+res.status);
-  return res.json();
-}
-
-async function updateLiveMetrics(){
-  // current (latest returned)
-  const nowSeries = await fetchWithFallback({});
+async function updateLive(){
+  const nowSeries=await fetchWithFallback({});
   if(!nowSeries.length) throw new Error("no live data");
 
-  const last = nowSeries[nowSeries.length-1];
-  curFtEl.textContent = last.ft.toFixed(2);
-  curMetaEl.textContent = "Updated: " + fmtNY(last.t);
+  const last=nowSeries[nowSeries.length-1];
+  curFtEl.textContent=last.ft.toFixed(2);
+  curMetaEl.textContent="Updated: "+fmtNY(last.t);
   setStage(last.ft);
 
-  // month max
-  const mSeries = await fetchWithFallback({startISO:startOfMonthNY_ISO(), endISO:nowISO()});
-  if(mSeries.length){
-    const mx=maxPoint(mSeries);
-    monMaxFtEl.textContent = mx.ft.toFixed(2);
-    monMaxMetaEl.textContent = "Max @ " + fmtNY(mx.t);
+  const monthSeries=await fetchWithFallback({startISO:startOfMonthNY_ISO(), endISO:nowISO()});
+  if(monthSeries.length){
+    const mx=maxPoint(monthSeries);
+    monMaxFtEl.textContent=mx.ft.toFixed(2);
+    monMaxMetaEl.textContent="Max @ "+fmtNY(mx.t);
   }else{
-    monMaxFtEl.textContent="—"; monMaxMetaEl.textContent="No data this month.";
+    monMaxFtEl.textContent="—";
+    monMaxMetaEl.textContent="No data this month.";
   }
 
-  // daily max/min
-  const dSeries = await fetchWithFallback({startISO:startOfTodayNY_ISO(), endISO:nowISO()});
-  if(dSeries.length){
-    const dmx=maxPoint(dSeries), dmn=minPoint(dSeries);
-    dayMaxFtEl.textContent = dmx.ft.toFixed(2);
-    dayMaxMetaEl.textContent = "Max @ " + fmtNY(dmx.t);
-    dayMinFtEl.textContent = dmn.ft.toFixed(2);
-    dayMinMetaEl.textContent = "Min @ " + fmtNY(dmn.t);
+  const daySeries=await fetchWithFallback({startISO:startOfTodayNY_ISO(), endISO:nowISO()});
+  if(daySeries.length){
+    const dmx=maxPoint(daySeries), dmn=minPoint(daySeries);
+    dayMaxFtEl.textContent=dmx.ft.toFixed(2);
+    dayMaxMetaEl.textContent="Max @ "+fmtNY(dmx.t);
+    dayMinFtEl.textContent=dmn.ft.toFixed(2);
+    dayMinMetaEl.textContent="Min @ "+fmtNY(dmn.t);
   }else{
     dayMaxFtEl.textContent="—"; dayMaxMetaEl.textContent="No data today.";
     dayMinFtEl.textContent="—"; dayMinMetaEl.textContent="No data today.";
   }
 
-  // last within 0.2 ft (only if currently >= moderate)
-  const hit = lastWithinDelta(last.ft);
+  // last within ±0.2 ft when >= moderate
+  const hit=lastWithinDelta(last.ft);
   if(hit){
-    nearMatchText.textContent = `Last within ±0.2 ft: ${hit.ft.toFixed(2)} ft · ${fmtNY(hit.t)}`;
-    nearMatchTag.style.display="inline-flex";
+    nearPill.style.display="inline-flex";
+    nearChip.style.background=(last.ft>=THRESH.majorLow)?"var(--major)":"var(--moderate)";
+    nearText.textContent=`Last within ±0.2 ft: ${hit.ft.toFixed(2)} ft · ${fmtNY(hit.t)}`;
   }else{
-    nearMatchTag.style.display="none";
+    nearPill.style.display="none";
   }
+
+  statusText.textContent="Live updated: "+fmtNY(last.t);
 }
 
-async function updateTimeseriesChart(){
-  // 72h obs: use USGS last 72 hours
-  const end = new Date();
-  const start = new Date(end.getTime() - 72*3600*1000);
-  const obs = await fetchWithFallback({startISO:start.toISOString(), endISO:end.toISOString()});
+/* =========================
+   Boot
+========================= */
+async function loadJSON(path){
+  const res=await fetch(path,{cache:"no-store"});
+  if(!res.ok) throw new Error("fetch "+path+" "+res.status);
+  return res.json();
+}
 
-  // 72h forecast: load repo-built NYHOPS json
+async function updateTimeseries(){
+  // Observations: last 72h
+  const end=new Date();
+  const start=new Date(end.getTime()-72*3600*1000);
+  const obs=await fetchWithFallback({startISO:start.toISOString(), endISO:end.toISOString()});
+
+  // Forecast: repo file (NYHOPS)
   let fc=[];
   try{
-    const j = await loadRepoJSON(NYHOPS_FORECAST_JSON);
-    fc = (j?.points||[]).map(p=>({t:p.t, ft:+p.ft})).filter(p=>Number.isFinite(p.ft));
-  }catch{
-    fc=[];
-  }
+    const j=await loadJSON(NYHOPS_FORECAST_JSON);
+    fc=(j?.points||[]).map(p=>({t:p.t, ft:+p.ft})).filter(p=>Number.isFinite(p.ft));
+  }catch{ fc=[]; }
 
   buildTsChart(obs, fc);
-
-  const obsMsg = obs.length ? `Obs: ${fmtNY(obs[0].t)} → ${fmtNY(obs[obs.length-1].t)}` : "Obs: —";
-  const fcMsg  = fc.length  ? `Forecast: ${fmtNY(fc[0].t)} → ${fmtNY(fc[fc.length-1].t)}` : "Forecast: unavailable";
-  tsNote.textContent = `${obsMsg} · ${fcMsg}`;
+  tsNote.textContent = `Flood stages: Minor ${THRESH.minorLow.toFixed(2)}–${THRESH.moderateLow.toFixed(2)} · Moderate ${THRESH.moderateLow.toFixed(2)}–${THRESH.majorLow.toFixed(2)} · Major ≥ ${THRESH.majorLow.toFixed(2)} ft`;
 }
 
 async function boot(){
-  try{
-    renderTopTen();
+  renderTopTen();
+  await updateAlerts();
 
-    // Load historic index first (used by filter + near-match)
-    const idx = await loadRepoJSON(HIGH_TIDES_INDEX_JSON);
-    HIGH_TIDES = (idx?.peaks||[]).map(p=>({t:p.t, ft:+p.ft})).filter(p=>Number.isFinite(p.ft));
-    HIGH_TIDES.sort((a,b)=>new Date(b.t)-new Date(a.t));
-    applyFilter();
+  // load historic index
+  const idx=await loadJSON(HIGH_TIDES_INDEX_JSON);
+  HIGH_TIDES=(idx?.peaks||[]).map(p=>({t:p.t, ft:+p.ft})).filter(p=>Number.isFinite(p.ft));
+  HIGH_TIDES.sort((a,b)=>new Date(b.t)-new Date(a.t));
+  applyFilter();
 
-    await updateAlerts();
-    await updateLiveMetrics();
-    await updateTimeseriesChart();
-  }catch(err){
-    console.error(err);
-    stageTextEl.textContent = "LIVE DATA UNAVAILABLE";
-    curMetaEl.textContent = "Could not load live data.";
-    tsNote.textContent = "Could not load chart data.";
-  }
+  await updateLive();
+  await updateTimeseries();
 }
 
-boot();
-setInterval(boot, 5*60*1000);
-</script>
+$("applyBtn").addEventListener("click", applyFilter);
+$("resetBtn").addEventListener("click", ()=>{
+  minElevEl.value=THRESH.minorLow.toFixed(2);
+  sortModeEl.value="desc";
+  applyFilter();
+});
 
+boot().catch(err=>{
+  console.error(err);
+  stageTextEl.textContent="LIVE DATA UNAVAILABLE";
+  statusText.textContent="Could not load live data.";
+  histMeta.textContent="Could not load historic index.";
+});
+
+// refresh every 5 minutes
+setInterval(()=>boot().catch(()=>{}), 5*60*1000);
+</script>
 </body>
 </html>
