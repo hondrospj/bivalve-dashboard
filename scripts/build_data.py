@@ -1,173 +1,232 @@
-import json
-import math
-import os
+#!/usr/bin/env python3
+import json, os, math, time
 from datetime import datetime, timedelta, timezone
-
-import requests
+from urllib.request import urlopen, Request
+from urllib.error import URLError, HTTPError
 
 USGS_SITE = "01412150"
 PRIMARY_PARAM = "72279"
 FALLBACK_PARAM = "00065"
 
 THRESH_MINOR = 4.19
-TZ_UTC = timezone.utc
 
-OUT_FORECAST = "data/nyhops_forecast.json"
-OUT_INDEX = "data/high_tides_index.json"
+OUT_DIR = "data"
+OUT_INDEX = os.path.join(OUT_DIR, "high_tides_index.json")
+OUT_NYHOPS = os.path.join(OUT_DIR, "nyhops_forecast.json")
 
-# Stevens station requested
-STEVENS_STATION = "U238"
-STEVENS_PAGE = f"https://hudson.dl.stevens-tech.edu/sfas/d/index.shtml?station={STEVENS_STATION}"
-
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (compatible; cupajoe-dashboard/1.0; +https://cupajoe.live/)"
-}
+NYHOPS_STATION = "U238"
 
 def iso_now():
-    return datetime.now(TZ_UTC).isoformat()
+  return datetime.now(timezone.utc).isoformat()
 
-def usgs_iv(start_utc: datetime, end_utc: datetime, param: str):
-    url = "https://waterservices.usgs.gov/nwis/iv/"
-    params = {
-        "format": "json",
-        "sites": USGS_SITE,
-        "parameterCd": param,
-        "siteStatus": "all",
-        "agencyCd": "USGS",
-        "startDT": start_utc.isoformat().replace("+00:00", "Z"),
-        "endDT": end_utc.isoformat().replace("+00:00", "Z"),
-    }
-    r = requests.get(url, params=params, headers=HEADERS, timeout=30)
-    r.raise_for_status()
-    return r.json()
+def http_get(url, timeout=30, headers=None):
+  headers = headers or {}
+  req = Request(url, headers={"User-Agent":"cupajoe-bivalve-dashboard/1.0", **headers})
+  with urlopen(req, timeout=timeout) as r:
+    return r.read()
 
-def extract_series(j):
-    ts = (((j or {}).get("value") or {}).get("timeSeries") or [])
-    if not ts:
-        return []
-    vals = (((ts[0].get("values") or [])[0]).get("value") or [])
-    out = []
-    for v in vals:
-        try:
-            ft = float(v.get("value"))
-            if math.isfinite(ft):
-                out.append({"t": v.get("dateTime"), "ft": ft})
-        except Exception:
-            pass
-    return out
+def usgs_iv_url(site, param, start_iso, end_iso):
+  return (
+    "https://waterservices.usgs.gov/nwis/iv/?format=json"
+    f"&sites={site}&parameterCd={param}&siteStatus=all&agencyCd=USGS"
+    f"&startDT={start_iso}&endDT={end_iso}"
+  )
 
-def fetch_usgs_series(start_utc: datetime, end_utc: datetime):
-    j = usgs_iv(start_utc, end_utc, PRIMARY_PARAM)
-    s = extract_series(j)
-    if s:
-        return s
-    j = usgs_iv(start_utc, end_utc, FALLBACK_PARAM)
-    return extract_series(j)
+def parse_usgs_series(js):
+  ts = (js.get("value", {}).get("timeSeries") or [])
+  if not ts: return []
+  vals = (ts[0].get("values") or [])
+  if not vals: return []
+  arr = (vals[0].get("value") or [])
+  out = []
+  for v in arr:
+    try:
+      ft = float(v["value"])
+      t = v["dateTime"]
+      if math.isfinite(ft):
+        out.append((t, ft))
+    except Exception:
+      pass
+  return out
 
-def load_json(path, default):
-    if not os.path.exists(path):
-        return default
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+def fetch_usgs_chunk(start_dt, end_dt):
+  start_iso = start_dt.isoformat().replace("+00:00","Z")
+  end_iso = end_dt.isoformat().replace("+00:00","Z")
 
-def save_json(path, obj):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(obj, f, ensure_ascii=False, indent=2)
+  for param in (PRIMARY_PARAM, FALLBACK_PARAM):
+    url = usgs_iv_url(USGS_SITE, param, start_iso, end_iso)
+    try:
+      raw = http_get(url)
+      js = json.loads(raw.decode("utf-8"))
+      pts = parse_usgs_series(js)
+      if pts:
+        return pts
+    except Exception:
+      continue
+  return []
 
-def detect_peaks(series, minor=THRESH_MINOR):
-    """
-    Converts a 15-min series into event peaks above minor.
-    An event starts when ft>=minor and ends when ft<minor.
-    We store the peak value and its timestamp.
-    """
-    if not series:
-        return []
+def event_peaks(points, minor=THRESH_MINOR):
+  """
+  points: list of (iso, ft) in chronological order
+  Event definition: continuous period >= minor. Peak is max ft within the event.
+  """
+  peaks = []
+  in_evt = False
+  peak_t = None
+  peak_ft = None
 
-    # Ensure sorted by time string (ISO sorts correctly)
-    series = sorted(series, key=lambda x: x["t"])
+  for t, ft in points:
+    if not in_evt:
+      if ft >= minor:
+        in_evt = True
+        peak_t, peak_ft = t, ft
+    else:
+      if ft > peak_ft:
+        peak_t, peak_ft = t, ft
+      if ft < minor:
+        peaks.append((peak_t, peak_ft))
+        in_evt = False
+        peak_t, peak_ft = None, None
 
-    in_evt = False
-    peak_ft = -1e9
-    peak_t = None
-    peaks = []
+  if in_evt and peak_t is not None:
+    peaks.append((peak_t, peak_ft))
+  return peaks
 
-    for p in series:
-        ft = p["ft"]
-        if not in_evt:
-            if ft >= minor:
-                in_evt = True
-                peak_ft = ft
-                peak_t = p["t"]
-        else:
-            if ft > peak_ft:
-                peak_ft = ft
-                peak_t = p["t"]
-            if ft < minor:
-                peaks.append({"t": peak_t, "ft": round(float(peak_ft), 4)})
-                in_evt = False
-                peak_ft = -1e9
-                peak_t = None
+def load_existing_index():
+  if not os.path.exists(OUT_INDEX):
+    return {"generated_at": None, "peaks": []}
+  with open(OUT_INDEX, "r", encoding="utf-8") as f:
+    return json.load(f)
 
-    if in_evt and peak_t is not None:
-        peaks.append({"t": peak_t, "ft": round(float(peak_ft), 4)})
+def dedupe_peaks(peaks):
+  # dedupe by timestamp; keep max if collision
+  m = {}
+  for t, ft in peaks:
+    if (t not in m) or (ft > m[t]):
+      m[t] = ft
+  out = [{"t": t, "ft": m[t]} for t in sorted(m.keys())]
+  return out
 
-    return peaks
+def build_high_tide_index():
+  os.makedirs(OUT_DIR, exist_ok=True)
+  existing = load_existing_index()
+  existing_peaks = [(p["t"], float(p["ft"])) for p in (existing.get("peaks") or []) if "t" in p and "ft" in p]
 
-def merge_unique_peaks(existing, new_peaks):
-    """
-    De-duplicate by timestamp (t). Keep max ft if duplicates.
-    """
-    m = {p["t"]: p for p in existing}
-    for p in new_peaks:
-        if p["t"] in m:
-            m[p["t"]] = p if p["ft"] > m[p["t"]]["ft"] else m[p["t"]]
-        else:
-            m[p["t"]] = p
-    out = list(m.values())
-    out.sort(key=lambda x: x["t"], reverse=True)
-    return out
+  # Decide start date: if we already have peaks, go back 7 days before latest peak to safely rebuild overlaps
+  if existing_peaks:
+    latest_t = max(existing_peaks, key=lambda x: x[0])[0]
+    try:
+      latest_dt = datetime.fromisoformat(latest_t.replace("Z","+00:00"))
+    except Exception:
+      latest_dt = datetime(2000,1,1,tzinfo=timezone.utc)
+    start_dt = latest_dt - timedelta(days=7)
+  else:
+    start_dt = datetime(2000,1,1,tzinfo=timezone.utc)
 
-# -------------------------
-# NYHOPS/SFAS adapter (set once)
-# -------------------------
-def fetch_stevens_nyhops_forecast_points():
-    """
-    This function is intentionally isolated.
-    SFAS/NYHOPS often requires a server-side fetch and parsing because the public UI
-    is form/image-based. Your job is ONLY to make this return:
-      [{"t": "<ISO8601>", "ft": <float>}, ...] for ~72 hours ahead.
+  end_dt = datetime.now(timezone.utc)
 
-    Once you identify the actual Stevens data endpoint behind station U238
-    (via browser DevTools > Network), put the request here.
-    """
-    # Placeholder: return empty if not configured
-    # Example shape (DON'T use this example values):
-    # return [{"t":"2026-01-18T00:00:00Z","ft":4.12}, ...]
+  # Pull USGS data in 30-day chunks (keeps requests manageable)
+  all_points = []
+  cur = start_dt
+  chunk = timedelta(days=30)
+
+  while cur < end_dt:
+    nxt = min(end_dt, cur + chunk)
+    pts = fetch_usgs_chunk(cur, nxt)
+    all_points.extend(pts)
+    cur = nxt
+    time.sleep(0.15)
+
+  # Sort chronologically
+  all_points.sort(key=lambda x: x[0])
+
+  new_peaks = event_peaks(all_points, minor=THRESH_MINOR)
+  merged = existing_peaks + new_peaks
+  merged_dedup = dedupe_peaks(merged)
+
+  out = {
+    "generated_at": iso_now(),
+    "site": USGS_SITE,
+    "minor_threshold_ft": THRESH_MINOR,
+    "peaks": merged_dedup
+  }
+
+  with open(OUT_INDEX, "w", encoding="utf-8") as f:
+    json.dump(out, f, indent=2)
+  print(f"Wrote {OUT_INDEX} with {len(merged_dedup)} peaks")
+
+def try_parse_csv_forecast(raw_bytes):
+  """
+  Very generic CSV parser:
+  expects at least 2 columns: time, value
+  """
+  txt = raw_bytes.decode("utf-8", errors="ignore").strip()
+  lines = [ln.strip() for ln in txt.splitlines() if ln.strip()]
+  if len(lines) < 2:
     return []
 
-def main():
-    # 1) Update high_tides_index.json using last 60 days of USGS data (fast & reliable)
-    #    This builds an all-time index over time (keeps growing).
-    end = datetime.now(TZ_UTC)
-    start = end - timedelta(days=60)
-    series = fetch_usgs_series(start, end)
-    peaks = detect_peaks(series, minor=THRESH_MINOR)
+  # try to detect header
+  start_i = 0
+  if any(h in lines[0].lower() for h in ["time","date","water","stage","elev","value"]):
+    start_i = 1
 
-    idx = load_json(OUT_INDEX, {"site": USGS_SITE, "updated_utc": None, "peaks": []})
-    idx["peaks"] = merge_unique_peaks(idx.get("peaks", []), peaks)
-    idx["updated_utc"] = iso_now()
-    save_json(OUT_INDEX, idx)
+  pts = []
+  for ln in lines[start_i:]:
+    parts = [p.strip() for p in ln.split(",")]
+    if len(parts) < 2:
+      continue
+    t = parts[0].replace(" ", "T")
+    try:
+      ft = float(parts[1])
+    except Exception:
+      continue
 
-    # 2) Update NYHOPS/SFAS forecast JSON
-    fc = load_json(OUT_FORECAST, {"source": "NYHOPS", "updated_utc": None, "points": []})
-    points = fetch_stevens_nyhops_forecast_points()
-    fc["points"] = points
-    fc["updated_utc"] = iso_now()
-    fc["source"] = f"Stevens SFAS/NYHOPS station {STEVENS_STATION}"
-    fc["station_page"] = STEVENS_PAGE
-    save_json(OUT_FORECAST, fc)
+    # try to make ISO-ish
+    if "T" in t and "Z" not in t and "+" not in t:
+      # assume local/naive; keep as string and let frontend format as best it can
+      pass
+    pts.append({"t": t, "ft": ft})
+  return pts
+
+def fetch_nyhops_forecast():
+  """
+  Stevens SFAS/NYHOPS pages can be dynamic.
+  We try a few common patterns; if none work, return [].
+  """
+  candidates = [
+    # (These are guesses; if you confirm the real endpoint, we’ll replace this cleanly.)
+    f"https://hudson.dl.stevens-tech.edu/sfas/d/data/{NYHOPS_STATION}.csv",
+    f"https://hudson.dl.stevens-tech.edu/sfas/d/{NYHOPS_STATION}.csv",
+    f"https://hudson.dl.stevens-tech.edu/sfas/d/download.php?station={NYHOPS_STATION}",
+    f"https://hudson.dl.stevens-tech.edu/sfas/d/index.shtml?station={NYHOPS_STATION}&format=csv",
+  ]
+
+  for url in candidates:
+    try:
+      raw = http_get(url, timeout=25)
+      pts = try_parse_csv_forecast(raw)
+      if pts:
+        return {"source": url, "points": pts}
+    except (HTTPError, URLError):
+      continue
+    except Exception:
+      continue
+
+  return {"source": None, "points": []}
+
+def write_nyhops():
+  os.makedirs(OUT_DIR, exist_ok=True)
+  fc = fetch_nyhops_forecast()
+  out = {
+    "generated_at": iso_now(),
+    "station": NYHOPS_STATION,
+    "source": fc["source"],
+    "points": fc["points"][:2000]  # keep file reasonable
+  }
+  with open(OUT_NYHOPS, "w", encoding="utf-8") as f:
+    json.dump(out, f, indent=2)
+  print(f"Wrote {OUT_NYHOPS} with {len(out['points'])} points (source={out['source']})")
 
 if __name__ == "__main__":
-    main()
-
+  build_high_tide_index()
+  write_nyhops()
